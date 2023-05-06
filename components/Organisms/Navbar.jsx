@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   IconButton,
-  Button,
   Stack,
   Collapse,
   Icon,
@@ -21,10 +20,14 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
 } from '@chakra-ui/icons';
+import ConnectWalletButton from '../Molecules/ConnectWalletButton';
+import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const { isOpen, onToggle } = useDisclosure();
-
+  const router = useRouter();
+  const isRoot = router.pathname === '/';
+  
   return (
     <Box>
       <Flex
@@ -61,7 +64,7 @@ export default function Navbar() {
           </Text>
 
           <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
-            <DesktopNav />
+            <DesktopNav isRoot={isRoot}/>
           </Flex>
         </Flex>
 
@@ -70,36 +73,42 @@ export default function Navbar() {
           justify={'flex-end'}
           direction={'row'}
           spacing={6}>
-          <Button
-            as={'a'}
-            display={{ base: 'none', md: 'inline-flex' }}
-            fontSize={'sm'}
-            fontWeight={600}
-            color={'white'}
-            bg={'pink.400'}
-            href={'#'}
-            _hover={{
-              bg: 'pink.300',
-            }}>
-            Connect Wallet
-          </Button>
+          <ConnectWalletButton/>
         </Stack>
       </Flex>
 
       <Collapse in={isOpen} animateOpacity>
-        <MobileNav />
+        <MobileNav isRoot={isRoot}/>
       </Collapse>
     </Box>
   );
 }
 
-const DesktopNav = () => {
+const DesktopNav = ({isRoot}) => {
   const linkColor = useColorModeValue('gray.600', 'gray.200');
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
 
   return (
     <Stack direction={'row'} spacing={4}>
+      {!isRoot && (
+        <Box>
+          <Popover trigger={'hover'} placement={'bottom-start'}>
+            <Link
+              p={2}
+              href={'/'}
+              fontSize={'sm'}
+              fontWeight={500}
+              color={linkColor}
+              _hover={{
+                textDecoration: 'none',
+                color: linkHoverColor,
+              }}>
+              Home
+            </Link>
+          </Popover>
+        </Box>
+      )}
       {NAV_ITEMS.map((navItem) => (
         <Box key={navItem.label}>
           <Popover trigger={'hover'} placement={'bottom-start'}>
@@ -174,12 +183,32 @@ const DesktopSubNav = ({ label, href, subLabel }) => {
   );
 };
 
-const MobileNav = () => {
+const MobileNav = ({isRoot}) => {
+  const linkColor = useColorModeValue('gray.600', 'gray.200');
   return (
     <Stack
       bg={useColorModeValue('white', 'gray.800')}
       p={4}
       display={{ md: 'none' }}>
+      {!isRoot && (
+        <Stack spacing={4}>
+        <Flex
+          py={2}
+          as={Link}
+          href={'/'}
+          justify={'space-between'}
+          align={'center'}
+          _hover={{
+            textDecoration: 'none',
+          }}>
+          <Text
+            fontWeight={600}
+            color={linkColor}>
+            Home
+          </Text>
+        </Flex>
+      </Stack>
+      )}
       {NAV_ITEMS.map((navItem) => (
         <MobileNavItem key={navItem.label} {...navItem} />
       ))}

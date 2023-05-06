@@ -96,6 +96,12 @@ const FORM_ITEMS = [
     type: 'number'
   },
   { 
+    id: 'typeOfFuel',
+    label: 'Type of fuel',
+    placeholder: 'Type of fuel',
+    type: 'text'
+  },
+  { 
     id: 'carColorCode',
     label: 'Color code',
     placeholder: 'Color code',
@@ -104,12 +110,6 @@ const FORM_ITEMS = [
   { 
     id: 'dateOfManufacture',
     label: 'Date of manufacture',
-    placeholder: '',
-    type: 'date'
-  },
-  { 
-    id: 'warrantyExpirationDate',
-    label: 'Warranty expiration date',
     placeholder: '',
     type: 'date'
   },
