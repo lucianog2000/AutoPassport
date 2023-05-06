@@ -5,13 +5,17 @@ import {
   Text,
   Button,
   Stack,
-  createIcon,
+  createIcon
 } from '@chakra-ui/react';
+import { useRouter } from 'next/router';
 
 export default function CallToActionWithAnnotation() {
+  const router = useRouter();
+
   return (
     <>
-      <Container maxW={'3xl'}>
+      <Container
+        maxW={'3xl'}>
         <Stack
           as={Box}
           textAlign={'center'}
@@ -27,7 +31,7 @@ export default function CallToActionWithAnnotation() {
             </Text>
           </Heading>
           <Text color={'gray.500'}>
-            AutoPassport is a blockchain-based platform that provides 
+            AutoPassport is a blockchain-based platform for manufacturers, that provides 
             a secure and transparent way to tokenize and manage vehicle data. 
             The platform also allows authorized workshops to update vehicle data on the token, 
             creating a reliable record of the vehicle&apos;s maintenance history 
@@ -48,11 +52,9 @@ export default function CallToActionWithAnnotation() {
               px={6}
               _hover={{
                 bg: 'pink.300',
-              }}>
-              Get Started
-            </Button>
-            <Button variant={'link'} colorScheme={'blue'} size={'sm'}>
-              Learn more
+              }}
+              onClick={() => router.push('/token-creation-form')}>
+              Create AutoPassport
             </Button>
           </Stack>
         </Stack>

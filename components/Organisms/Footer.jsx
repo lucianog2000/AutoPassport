@@ -6,6 +6,7 @@ import {
   Stack,
   Text,
   useColorModeValue,
+  useBreakpointValue
 } from '@chakra-ui/react';
 
 const Logo = (props) => {
@@ -45,11 +46,16 @@ export default function LargeWithLogoLeft() {
           templateColumns={{ sm: '1fr 1fr', md: '2fr 1fr 1fr 1fr 1fr' }}
           spacing={8}>
           <Stack spacing={6}>
-            <Box>
-              <Logo color={useColorModeValue('gray.700', 'white')} />
-            </Box>
+            <Text
+              textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
+              fontFamily={'heading'}
+              color={useColorModeValue('gray.800', 'white')}
+              fontSize={'m'}
+              fontWeight={500}>
+              AutoPassport
+            </Text>
             <Text fontSize={'sm'}>
-              © 2022 Chakra Templates. All rights reserved
+              © 2023 AutoPassport®
             </Text>
           </Stack>
           <Stack align={'flex-start'}>
@@ -77,11 +83,10 @@ export default function LargeWithLogoLeft() {
             <Link href={'#'}>Status</Link>
           </Stack>
           <Stack align={'flex-start'}>
-            <ListHeader>Follow Us</ListHeader>
+            <ListHeader>Social</ListHeader>
             <Link href={'#'}>Facebook</Link>
             <Link href={'#'}>Twitter</Link>
-            <Link href={'#'}>Dribbble</Link>
-            <Link href={'#'}>Instagram</Link>
+            <Link href={'#'}>Discord</Link>
             <Link href={'#'}>LinkedIn</Link>
           </Stack>
         </SimpleGrid>
