@@ -11,8 +11,8 @@ import {
   PopoverTrigger,
   PopoverContent,
   useColorModeValue,
-  useBreakpointValue,
   useDisclosure,
+  Image,
 } from '@chakra-ui/react';
 import {
   HamburgerIcon,
@@ -26,19 +26,15 @@ import { useRouter } from 'next/router';
 export default function Navbar() {
   const { isOpen, onToggle } = useDisclosure();
   const router = useRouter();
-  const isRoot = router.pathname === '/';
   
   return (
-    <Box>
+    <Box pos="fixed" w="100%" zIndex={2}>
       <Flex
         bg={useColorModeValue('gray.50', 'gray.900')}
         color={useColorModeValue('gray.600', 'white')}
         minH={'60px'}
         py={{ base: 2 }}
         px={{ base: 4 }}
-        borderBottom={1}
-        borderStyle={'solid'}
-        borderColor={useColorModeValue('gray.200', 'gray.900')}
         align={'center'}>
         <Flex
           flex={{ base: 1, md: 'auto' }}
@@ -54,17 +50,8 @@ export default function Navbar() {
           />
         </Flex>
         <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
-          <Text
-            textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
-            fontFamily={'heading'}
-            color={useColorModeValue('gray.800', 'white')}
-            fontSize={'m'}
-            fontWeight={500}>
-            AutoPassport
-          </Text>
-
-          <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
-            <DesktopNav isRoot={isRoot}/>
+          <Flex display={{ base: 'none', md: 'flex' }}>
+            <DesktopNav/>
           </Flex>
         </Flex>
 
@@ -78,37 +65,19 @@ export default function Navbar() {
       </Flex>
 
       <Collapse in={isOpen} animateOpacity>
-        <MobileNav isRoot={isRoot}/>
+        <MobileNav/>
       </Collapse>
     </Box>
   );
 }
 
 const DesktopNav = ({isRoot}) => {
-  const linkColor = useColorModeValue('gray.600', 'gray.200');
+  const linkColor = useColorModeValue('gray.800', 'white');
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
 
   return (
     <Stack direction={'row'} spacing={4}>
-      {!isRoot && (
-        <Box>
-          <Popover trigger={'hover'} placement={'bottom-start'}>
-            <Link
-              p={2}
-              href={'/'}
-              fontSize={'sm'}
-              fontWeight={500}
-              color={linkColor}
-              _hover={{
-                textDecoration: 'none',
-                color: linkHoverColor,
-              }}>
-              Home
-            </Link>
-          </Popover>
-        </Box>
-      )}
       {NAV_ITEMS.map((navItem) => (
         <Box key={navItem.label}>
           <Popover trigger={'hover'} placement={'bottom-start'}>
@@ -116,13 +85,14 @@ const DesktopNav = ({isRoot}) => {
               <Link
                 p={2}
                 href={navItem.href ?? '#'}
-                fontSize={'sm'}
+                fontSize={'m'}
                 fontWeight={500}
                 color={linkColor}
                 _hover={{
                   textDecoration: 'none',
                   color: linkHoverColor,
-                }}>
+                }}
+                fontFamily={'heading'}>
                 {navItem.label}
               </Link>
             </PopoverTrigger>
@@ -190,25 +160,6 @@ const MobileNav = ({isRoot}) => {
       bg={useColorModeValue('white', 'gray.800')}
       p={4}
       display={{ md: 'none' }}>
-      {!isRoot && (
-        <Stack spacing={4}>
-        <Flex
-          py={2}
-          as={Link}
-          href={'/'}
-          justify={'space-between'}
-          align={'center'}
-          _hover={{
-            textDecoration: 'none',
-          }}>
-          <Text
-            fontWeight={600}
-            color={linkColor}>
-            Home
-          </Text>
-        </Flex>
-      </Stack>
-      )}
       {NAV_ITEMS.map((navItem) => (
         <MobileNavItem key={navItem.label} {...navItem} />
       ))}
@@ -268,17 +219,23 @@ const MobileNavItem = ({ label, children, href }) => {
 
 const NAV_ITEMS = [
   {
-    label: 'My vehicle',
+    label: 'AutoPassport',
+    href: '/',
     children: [
       {
-        label: 'Explore Design Work',
-        subLabel: 'Trending Design to inspire you',
-        href: '#',
+        label: 'Create NFT',
+        subLabel: 'Generate a new AutoPassport Token',
+        href: '/create-nft',
       },
       {
-        label: 'New & Noteworthy',
-        subLabel: 'Up-and-coming Designers',
-        href: '#',
+        label: 'Update NFT',
+        subLabel: `Update the metadata of an existing Token`,
+        href: '/update-nft-metadata',
+      },
+      {
+        label: 'View NFT',
+        subLabel: 'Explore NFT metadata',
+        href: '/view-nft-metadata',
       },
     ],
   },

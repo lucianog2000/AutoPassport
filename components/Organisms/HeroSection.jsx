@@ -24,7 +24,8 @@ export default function CallToActionWithAnnotation() {
           <Heading
             fontWeight={600}
             fontSize={{ base: '2xl', sm: '4xl', md: '6xl' }}
-            lineHeight={'110%'}>
+            lineHeight={'110%'}
+            marginTop={'60px'}>
             With AutoPassport,<br />
             <Text as={'span'} color={'pink.300'}>
                 your car&apos;s past becomes an open book.
@@ -53,8 +54,11 @@ export default function CallToActionWithAnnotation() {
               _hover={{
                 bg: 'pink.300',
               }}
-              onClick={() => router.push('/token-creation-form')}>
+              onClick={() => router.push('/create-nft')}>
               Create AutoPassport
+            </Button>
+            <Button variant={'link'} colorScheme={'gray'} size={'m'}>
+              How It Works
             </Button>
           </Stack>
         </Stack>
