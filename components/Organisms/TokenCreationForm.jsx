@@ -35,7 +35,7 @@ export default function TokenCreationForm(){
           <FormLabel>Vehicle Image</FormLabel>
           <Stack direction={['column', 'row']} spacing={6}>
             <Center>
-              <Avatar size="xl" src="https://cdn-icons-png.flaticon.com/512/27/27003.png"/>
+              <Avatar size="xl" src="https://gateway.pinata.cloud/ipfs/QmcR6pJ4wMbp1JvSAWfDgkE8cehh9vZQkj7Vthe9sMEwFH?filename=car.png"/>
             </Center>
             <Center w="full">
               <Button w="full">Change Image</Button>

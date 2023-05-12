@@ -1,13 +1,13 @@
 import React from 'react'
 import Navbar from '../Organisms/Navbar'
-import HeroSection from '../Organisms/HeroSection'
 import Footer from '../Organisms/Footer'
+import TokenViewForm from '../Organisms/TokenViewForm'
 
-export default function HomeLayout() {
+export default function TokenCreationLayout() {
   return (
     <>
       <Navbar/>
-      <HeroSection/>
+      <TokenViewForm/>
       <Footer/>
     </>
   )

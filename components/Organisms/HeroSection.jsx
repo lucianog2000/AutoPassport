@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
-export default function CallToActionWithAnnotation() {
+export default function HeroSection() {
   const router = useRouter();
 
   return (
