@@ -21,14 +21,12 @@ import {
   ChevronRightIcon,
 } from '@chakra-ui/icons';
 import ConnectWalletButton from '../Molecules/ConnectWalletButton';
-import { useRouter } from 'next/router';
 
 export default function Navbar() {
   const { isOpen, onToggle } = useDisclosure();
-  const router = useRouter();
   
   return (
-    <Box pos="fixed" w="100%" zIndex={2}>
+    <Box w="100%">
       <Flex
         bg={useColorModeValue('gray.50', 'gray.900')}
         color={useColorModeValue('gray.600', 'white')}
@@ -50,7 +48,8 @@ export default function Navbar() {
           />
         </Flex>
         <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
-          <Flex display={{ base: 'none', md: 'flex' }}>
+          <Image src='https://gateway.pinata.cloud/ipfs/QmP4vAGyez4524ik18ojJAQuKtxkvwmmpA3Dco2f6ovNsy?filename=AutoPassport.png' alt='logo' w={'70px'} h={'70px'}/>
+          <Flex display={'flex'} alignItems={'center'}>
             <DesktopNav/>
           </Flex>
         </Flex>
@@ -71,7 +70,7 @@ export default function Navbar() {
   );
 }
 
-const DesktopNav = ({isRoot}) => {
+const DesktopNav = () => {
   const linkColor = useColorModeValue('gray.800', 'white');
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
@@ -153,8 +152,7 @@ const DesktopSubNav = ({ label, href, subLabel }) => {
   );
 };
 
-const MobileNav = ({isRoot}) => {
-  const linkColor = useColorModeValue('gray.600', 'gray.200');
+const MobileNav = () => {
   return (
     <Stack
       bg={useColorModeValue('white', 'gray.800')}
