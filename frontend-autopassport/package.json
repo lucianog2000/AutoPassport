@@ -13,7 +13,6 @@
     "@chakra-ui/react": "^2.6.1",
     "@emotion/react": "^11.10.8",
     "@emotion/styled": "^11.10.8",
-    "@wagmi/core": "^0.10.11",
     "axios": "^1.4.0",
     "eslint": "8.39.0",
     "eslint-config-next": "13.3.1",
@@ -25,7 +24,6 @@
     "react-icons": "^4.8.0"
   },
   "devDependencies": {
-    "hardhat": "^2.14.0",
     "@faker-js/faker": "^8.0.0"
   }
 }
