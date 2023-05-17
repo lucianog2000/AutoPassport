@@ -3,7 +3,6 @@ import {
   Flex,
   Text,
   IconButton,
-  Button,
   Stack,
   Collapse,
   Icon,
@@ -12,8 +11,8 @@ import {
   PopoverTrigger,
   PopoverContent,
   useColorModeValue,
-  useBreakpointValue,
   useDisclosure,
+  Image,
 } from '@chakra-ui/react';
 import {
   HamburgerIcon,
@@ -21,21 +20,19 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
 } from '@chakra-ui/icons';
+import ConnectWalletButton from '../Molecules/ConnectWalletButton';
 
 export default function Navbar() {
   const { isOpen, onToggle } = useDisclosure();
-
+  
   return (
-    <Box>
+    <Box w="100%">
       <Flex
         bg={useColorModeValue('gray.50', 'gray.900')}
         color={useColorModeValue('gray.600', 'white')}
         minH={'60px'}
         py={{ base: 2 }}
         px={{ base: 4 }}
-        borderBottom={1}
-        borderStyle={'solid'}
-        borderColor={useColorModeValue('gray.200', 'gray.900')}
         align={'center'}>
         <Flex
           flex={{ base: 1, md: 'auto' }}
@@ -51,17 +48,9 @@ export default function Navbar() {
           />
         </Flex>
         <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
-          <Text
-            textAlign={useBreakpointValue({ base: 'center', md: 'left' })}
-            fontFamily={'heading'}
-            color={useColorModeValue('gray.800', 'white')}
-            fontSize={'m'}
-            fontWeight={500}>
-            AutoPassport
-          </Text>
-
-          <Flex display={{ base: 'none', md: 'flex' }} ml={10}>
-            <DesktopNav />
+          <Image src='https://gateway.pinata.cloud/ipfs/QmP4vAGyez4524ik18ojJAQuKtxkvwmmpA3Dco2f6ovNsy?filename=AutoPassport.png' alt='logo' w={'70px'} h={'70px'}/>
+          <Flex display={'flex'} alignItems={'center'}>
+            <DesktopNav/>
           </Flex>
         </Flex>
 
@@ -70,31 +59,19 @@ export default function Navbar() {
           justify={'flex-end'}
           direction={'row'}
           spacing={6}>
-          <Button
-            as={'a'}
-            display={{ base: 'none', md: 'inline-flex' }}
-            fontSize={'sm'}
-            fontWeight={600}
-            color={'white'}
-            bg={'pink.400'}
-            href={'#'}
-            _hover={{
-              bg: 'pink.300',
-            }}>
-            Connect Wallet
-          </Button>
+          <ConnectWalletButton/>
         </Stack>
       </Flex>
 
       <Collapse in={isOpen} animateOpacity>
-        <MobileNav />
+        <MobileNav/>
       </Collapse>
     </Box>
   );
 }
 
 const DesktopNav = () => {
-  const linkColor = useColorModeValue('gray.600', 'gray.200');
+  const linkColor = useColorModeValue('gray.800', 'white');
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
 
@@ -107,13 +84,14 @@ const DesktopNav = () => {
               <Link
                 p={2}
                 href={navItem.href ?? '#'}
-                fontSize={'sm'}
+                fontSize={'m'}
                 fontWeight={500}
                 color={linkColor}
                 _hover={{
                   textDecoration: 'none',
                   color: linkHoverColor,
-                }}>
+                }}
+                fontFamily={'heading'}>
                 {navItem.label}
               </Link>
             </PopoverTrigger>
@@ -239,17 +217,23 @@ const MobileNavItem = ({ label, children, href }) => {
 
 const NAV_ITEMS = [
   {
-    label: 'My vehicle',
+    label: 'AutoPassport',
+    href: '/',
     children: [
       {
-        label: 'Explore Design Work',
-        subLabel: 'Trending Design to inspire you',
-        href: '#',
+        label: 'Create NFT',
+        subLabel: 'Generate a new AutoPassport Token',
+        href: '/create-nft',
       },
       {
-        label: 'New & Noteworthy',
-        subLabel: 'Up-and-coming Designers',
-        href: '#',
+        label: 'Update NFT',
+        subLabel: `Update the metadata of an existing Token`,
+        href: '/update-nft-metadata',
+      },
+      {
+        label: 'View NFT',
+        subLabel: 'Explore NFT metadata',
+        href: '/view-nft-metadata',
       },
     ],
   },

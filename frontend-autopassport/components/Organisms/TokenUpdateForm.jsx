@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
   
-export default function UserProfileEdit(){
+export default function TokenUpdateForm(){
   const router = useRouter();
   return (
     <Flex
@@ -29,10 +29,9 @@ export default function UserProfileEdit(){
         p={6}
         my={12}>
         <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
-          Create AutoPassport
+          Update AutoPassport
         </Heading>
         <FormControl id="userName">
-          <FormLabel>Vehicle Image</FormLabel>
           <Stack direction={['column', 'row']} spacing={6}>
             <Center>
               <Avatar size="xl" src="https://cdn-icons-png.flaticon.com/512/27/27003.png"/>
@@ -43,7 +42,7 @@ export default function UserProfileEdit(){
           </Stack>
         </FormControl>
         {FORM_ITEMS.map((item, length) => (
-            <FormControl key={length} id={item.id} isRequired>
+            <FormControl key={length} id={item.id} isRequired={item.isRequired}>
             <FormLabel>{item.label}</FormLabel>
             <Input
               placeholder={item.placeholder}
@@ -69,7 +68,7 @@ export default function UserProfileEdit(){
             _hover={{
               bg: 'pink.300',
             }}>
-            Mint
+            Update
           </Button>
         </Stack>
       </Stack>
@@ -78,22 +77,17 @@ export default function UserProfileEdit(){
 }
 const FORM_ITEMS = [
   { 
-    id: 'Brand',
-    label: 'Brand',
-    placeholder: 'Brand',
-    type: 'text'
-  },
-  { 
-    id: 'Model',
-    label: 'Model',
-    placeholder: 'Model',
-    type: 'text'
-  },
-  { 
-    id: 'vehicleIdentificationNumber',
-    label: 'VIN',
-    placeholder: '0XXXX00XXXX000000',
+    id: 'kilometersOrMiles',
+    label: 'Kilometers or miles',
+    placeholder: 'Kilometers or miles',
+    isRequired: true,
     type: 'number'
+  },
+  { 
+    id: 'typeOfFuel',
+    label: 'Type of fuel',
+    placeholder: 'Type of fuel',
+    type: 'text'
   },
   { 
     id: 'carColorCode',
@@ -102,21 +96,15 @@ const FORM_ITEMS = [
     type: 'text'
   },
   { 
-    id: 'dateOfManufacture',
-    label: 'Date of manufacture',
-    placeholder: '',
-    type: 'date'
+    id: 'repairHistory',
+    label: 'Repair history',
+    placeholder: 'Repair history',
+    type: 'text'
   },
   { 
-    id: 'warrantyExpirationDate',
-    label: 'Warranty expiration date',
-    placeholder: '',
-    type: 'date'
-  },
-  { 
-    id: 'warrantyExpirationDate',
-    label: 'Warranty expiration date',
-    placeholder: '',
-    type: 'date'
+    id: 'maintenanceHistory',
+    label: 'Maintenance history',
+    placeholder: 'Maintenance history',
+    type: 'text'
   }
 ];
