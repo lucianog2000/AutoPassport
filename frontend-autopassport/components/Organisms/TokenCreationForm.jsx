@@ -1,24 +1,44 @@
+import React, { useState } from 'react';
 import {
-    Button,
-    Flex,
-    FormControl,
-    FormLabel,
-    Heading,
-    Input,
-    Stack,
-    useColorModeValue,
-    Avatar,
-    Center,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  Stack,
+  useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
-  
-export default function TokenCreationForm(){
+import ImageUploader from '../Molecules/ImageUploader';
+
+export default function TokenCreationForm() {
   const router = useRouter();
+  const [formValues, setFormValues] = useState({});
+
+  const handleInputChange = (event) => {
+    const { id, value } = event.target;
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [id]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const jsonData = JSON.stringify(formValues);
+      const response = await axios.post('URL_DE_LA_API', jsonData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
-    <Flex
-      minH={'100vh'}
-      align={'center'}
-      justify={'center'}>
+    <Flex minH={'100vh'} align={'center'} justify={'center'}>
       <Stack
         spacing={4}
         w={'full'}
@@ -27,28 +47,20 @@ export default function TokenCreationForm(){
         rounded={'xl'}
         boxShadow={'lg'}
         p={6}
-        my={12}>
+        my={12}
+      >
         <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
           Create AutoPassport
         </Heading>
-        <FormControl id="userName">
-          <FormLabel>Vehicle Image</FormLabel>
-          <Stack direction={['column', 'row']} spacing={6}>
-            <Center>
-              <Avatar size="xl" src="https://gateway.pinata.cloud/ipfs/QmcR6pJ4wMbp1JvSAWfDgkE8cehh9vZQkj7Vthe9sMEwFH?filename=car.png"/>
-            </Center>
-            <Center w="full">
-              <Button w="full">Change Image</Button>
-            </Center>
-          </Stack>
-        </FormControl>
-        {FORM_ITEMS.map((item, length) => (
-            <FormControl key={length} id={item.id} isRequired>
+        <ImageUploader />
+        {FORM_ITEMS.map((item, index) => (
+          <FormControl key={index} id={item.id} isRequired>
             <FormLabel>{item.label}</FormLabel>
             <Input
               placeholder={item.placeholder}
               _placeholder={{ color: 'gray.500' }}
               type={item.type}
+              onChange={handleInputChange}
             />
           </FormControl>
         ))}
@@ -57,9 +69,10 @@ export default function TokenCreationForm(){
             w="full"
             _hover={{
               bg: 'red.500',
-              color: 'white'
+              color: 'white',
             }}
-            onClick={() => router.push('/')}>
+            onClick={() => router.push('/')}
+          >
             Cancel
           </Button>
           <Button
@@ -68,7 +81,9 @@ export default function TokenCreationForm(){
             w="full"
             _hover={{
               bg: 'pink.300',
-            }}>
+            }}
+            onClick={handleSubmit}
+          >
             Mint
           </Button>
         </Stack>
@@ -76,47 +91,48 @@ export default function TokenCreationForm(){
     </Flex>
   );
 }
+
 const FORM_ITEMS = [
-  { 
+  {
     id: 'Brand',
     label: 'Brand',
     placeholder: 'Brand',
-    type: 'text'
+    type: 'text',
   },
-  { 
+  {
     id: 'Model',
     label: 'Model',
     placeholder: 'Model',
-    type: 'text'
+    type: 'text',
   },
-  { 
+  {
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
     placeholder: '0XXXX00XXXX000000',
-    type: 'number'
+    type: 'number',
   },
-  { 
+  {
     id: 'typeOfFuel',
     label: 'Type of fuel',
     placeholder: 'Type of fuel',
-    type: 'text'
+    type: 'text',
   },
-  { 
+  {
     id: 'carColorCode',
     label: 'Color code',
     placeholder: 'Color code',
-    type: 'text'
+    type: 'text',
   },
-  { 
+  {
     id: 'dateOfManufacture',
     label: 'Date of manufacture',
     placeholder: '',
-    type: 'date'
+    type: 'date',
   },
-  { 
+  {
     id: 'warrantyExpirationDate',
     label: 'Warranty expiration date',
     placeholder: '',
-    type: 'date'
-  }
+    type: 'date',
+  },
 ];
