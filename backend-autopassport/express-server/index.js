@@ -4,8 +4,8 @@ const express = require('express');
 const app = express();
 
 
-app.listen(3000, () => {
-  console.log('Servidor escuchando en el puerto 3000 - http://localhost:3000');
+app.listen(3001, () => {
+  console.log('Servidor escuchando en el puerto 3001 - http://localhost:3001');
 });
 
 app.get('/', (req, res) => {
