@@ -1,5 +1,0 @@
-1) Ejecutar en la terminal npm i express
-2) Una vez que se instalo express, ejecuta node index.js
-3) Ir a localhost:3000 para probar la API.
-
-PD: Ante dudas y/o consultas comunicarse con el serivicio de asistencia al 0303456 de 21hs a 22hs

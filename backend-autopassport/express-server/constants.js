@@ -186,4 +186,27 @@ const CARS = [
     }
   }];
 
-module.exports = CARS;
+const BRANDS = [
+  { id: 1, name: 'Toyota' },
+  { id: 2, name: 'Honda' },
+  { id: 3, name: 'Ford' },
+  { id: 4, name: 'Chevrolet' },
+  { id: 5, name: 'Volkswagen' },
+  { id: 6, name: 'BMW' },
+  { id: 7, name: 'Mercedes-Benz' },
+  { id: 8, name: 'Nissan' },
+  { id: 9, name: 'Audi' },
+  { id: 10, name: 'Hyundai' },
+  { id: 11, name: 'Kia' },
+  { id: 12, name: 'Mazda' },
+  { id: 13, name: 'Subaru' },
+  { id: 14, name: 'Lexus' },
+  { id: 15, name: 'Mitsubishi' },
+  { id: 16, name: 'Chrysler' },
+  { id: 17, name: 'Dodge' },
+];
+
+module.exports = {
+  CARS,
+  BRANDS
+};
