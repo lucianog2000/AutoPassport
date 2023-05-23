@@ -156,7 +156,7 @@ const FORM_ITEMS = [
     label: 'Color code',
     placeholder: 'Color code',
     type: 'text',
-    maxLength: 4,
+    maxLength: 8,
   },
   {
     id: 'dateOfManufacture',
@@ -171,7 +171,7 @@ const FORM_ITEMS = [
     label: 'Warranty expiration date',
     placeholder: '',
     type: 'date',
-    max: new Date().toISOString().split("T")[0],
+    // max: new Date().toISOString().split("T")[0],
   },
 ];
 
