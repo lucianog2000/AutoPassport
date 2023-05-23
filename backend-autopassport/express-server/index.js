@@ -1,11 +1,19 @@
 const CARS = require('./constants');
 
 const express = require('express');
+const cors = require('cors')
+const bodyParser = require('body-parser'); // Para poder leer el body de las peticiones
 const app = express();
 
+// Configurar body-parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-app.listen(3000, () => {
-  console.log('Servidor escuchando en el puerto 3000 - http://localhost:3000');
+// Configurar CORS
+app.use(cors())
+
+app.listen(5000, () => {
+  console.log('Servidor escuchando en el puerto 5000 - http://localhost:5000');
 });
 
 app.get('/', (req, res) => {
@@ -52,4 +60,15 @@ app.delete('/data/:id', (req, res) => {
     console.log('No se encontró el auto');
     res.status(404).send('No se encontró el auto');
   }
+});
+
+// Eliminar un auto por id 
+app.post('/api/create/', (req, res) => {
+
+  console.log('Nuevos datos recibidos para insertar.')
+  // Tomo el parametro id de la url
+  const newCar = req.body;
+
+  console.log('Body', newCar)
+  res.send('Auto creado correctamente')
 });
