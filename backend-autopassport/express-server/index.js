@@ -9,11 +9,16 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+<<<<<<< HEAD
 // Configurar CORS
 app.use(cors())
 
 app.listen(5000, () => {
   console.log('Servidor escuchando en el puerto 5000 - http://localhost:5000');
+=======
+app.listen(3001, () => {
+  console.log('Servidor escuchando en el puerto 3001 - http://localhost:3001');
+>>>>>>> 4f3a76ebe2b4aebfec4db24928948c4c8bfb4fc1
 });
 
 app.get('/', (req, res) => {
