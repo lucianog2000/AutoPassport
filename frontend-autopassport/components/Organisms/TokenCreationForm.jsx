@@ -6,14 +6,15 @@ import {
   FormLabel,
   Heading,
   Input,
-  Select,
   Stack,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
+import { ethers } from 'ethers';
 import SelectInput from '../Molecules/SelectInput';
 import axios from 'axios';
+
 export default function TokenCreationForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
@@ -27,19 +28,12 @@ export default function TokenCreationForm() {
   };
 
   const handleSubmit = async (event) => {
-
     event.preventDefault();
     try {
-      const jsonData = JSON.stringify(formValues);
-      console.log(jsonData)
-      // TODO: Add the correct URL for the backend API
-      const response = await axios.post('http://localhost:5000/api/create/', jsonData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      await smartContractInteraction(getContract, formValues, createAutoPassport);
     } catch (error) {
       const { message } = error;
+      console.log(message);
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
     }
   };
@@ -122,12 +116,48 @@ export default function TokenCreationForm() {
   );
 }
 
+function getContract(contractAddress, contractABI) {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const contract = new ethers.Contract(contractAddress, contractABI, signer);
+  return contract;
+}
 
+async function createAutoPassport(contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl) {
+  const transaction = await contract.createAutoPassport(
+    walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
+  );
+  const receipt = await transaction.wait();
+  const transactionHash = receipt.transactionHash;
+  return transactionHash;
+}
+
+async function smartContractInteraction(getContract, formValues, smartContractFunction) {
+  const accounts = await window.ethereum.request({
+    method: "eth_requestAccounts"
+  });
+
+  const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
+  const contractABI = require("../../../backend-autopassport/hardhat/artifacts/contracts/AutoPassport.sol/AutoPassport.json").abi;
+
+  const contract = getContract(contractAddress, contractABI);
+
+  const { brand, model, vehicleIdentificationNumber, colorCode } = formValues;
+  const walletAddress = accounts[0]?.toString();
+  const dateOfManufacture = new Date().toISOString().split("T")[0].toString();
+  const uriIpfsUrl = "/";
+  
+  const transactionHash = await smartContractFunction(
+    contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
+    );
+
+  alert(`The token has been created successfully ${transactionHash}`);
+}
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
   // {
-  //   id: 'Brand',
+  //   id: 'brand',
   //   label: 'Brand',
   //   placeholder: 'Brand',
   //   type: 'text',
@@ -152,7 +182,7 @@ const FORM_ITEMS = [
   //   type: 'text',
   // },
   {
-    id: 'carColorCode',
+    id: 'colorCode',
     label: 'Color code',
     placeholder: 'Color code',
     type: 'text',
@@ -171,7 +201,6 @@ const FORM_ITEMS = [
     label: 'Warranty expiration date',
     placeholder: '',
     type: 'date',
-    // max: new Date().toISOString().split("T")[0],
   },
 ];
 
