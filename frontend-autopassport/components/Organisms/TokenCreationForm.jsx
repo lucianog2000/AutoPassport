@@ -12,18 +12,20 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
+import getConfig from 'next/config'
+import { ethers } from 'ethers';
 import SelectInput from '../Molecules/SelectInput';
 import axios from 'axios';
-<<<<<<< Updated upstream
-=======
 // import { pinningFileToIPFS } from '../../services/pinningFileToIPFS';
 // import { getContract } from '../../services/getContract';
 // import { createAutoPassport } from '../../services/createAutoPassport';
 
->>>>>>> Stashed changes
 export default function TokenCreationForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
+  const env = getConfig().publicRuntimeConfig
+  const contractAddress = env.SMART_CONTRACT_ADDRESS
+  const contractABI = require("../../utils/AutoPassport.json").abi;
 
   const handleInputChange = (event) => {
     const { id, value } = event.target;
@@ -43,25 +45,13 @@ export default function TokenCreationForm() {
   const handleSubmit = async (event) => {
 
     event.preventDefault();
-
-    const fileIPFS = pinningFileToIPFS(formValues); 
-
-    if (!fileIPFS) {
-      alert('Error to load file to IPFS. Try later or contact with support');
-      return;
-    }
-    
-    formValues['file'] = fileIPFS;
-
     try {
-      const jsonData = JSON.stringify(formValues);
-      console.log(jsonData)
-      // TODO: Add the correct URL for the backend API
-      const response = await axios.post('http://localhost:5000/api/create/', jsonData, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const fileIPFS = pinningFileToIPFS(formValues); 
+
+      if (fileIPFS) {
+        formValues['file'] = fileIPFS;
+      }
+      await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
     } catch (error) {
       const { message } = error;
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
@@ -86,7 +76,7 @@ export default function TokenCreationForm() {
           </Heading>
           <ImageUploader handleChange={handleFile} />
 
-          <SelectInput
+          {/* <SelectInput
             id="typeOfFuel" 
             label="Type of fuel" 
             placeholder="Select type of fuel" 
@@ -100,7 +90,7 @@ export default function TokenCreationForm() {
             placeholder="Select brand"
             options={SELECT_BRAND_ITEMS}
             onChange={handleInputChange}
-          />
+          /> */}
 
           {FORM_ITEMS.map((item, index) => (
             <FormControl key={index} id={item.id} isRequired>
@@ -145,10 +135,6 @@ export default function TokenCreationForm() {
     </form>
   );
 }
-
-<<<<<<< Updated upstream
-
-=======
 
 const pinningFileToIPFS = async (formValues) => {
   const JWT = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI1NzE1YmE3OS1lNmY3LTRiZDgtOTUyZi02YTliMTI3ZDEzOTQiLCJlbWFpbCI6ImZyYW5jb3JvYi5nYXJjaWFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImVjZDJlYzNmYWM2MTcxNmU5OTEyIiwic2NvcGVkS2V5U2VjcmV0IjoiNjY0MGIzYzA3NzYwZTllMjMwOWEwZDVhZTAwMmRjMzYxYWFmZDM3NmM5Mjk0MDcyMWRkODA2ODBhNzFjOTNlYyIsImlhdCI6MTY4NTE1MzMxNn0.46qZ9W_SMH1D6rN084BG4LbhrfjCfosJK86He4p4fl8'
@@ -198,15 +184,10 @@ async function createAutoPassport(contract, walletAddress, brand, model, vehicle
   return transactionHash;
 }
 
-async function smartContractInteraction(getContract, formValues, smartContractFunction) {
+async function smartContractInteraction(getContract, formValues, smartContractFunction, contractAddress, contractABI) {
   const accounts = await window.ethereum.request({
     method: "eth_requestAccounts"
   });
-
-  // TODO: - Contract address must be fetched from a database/backend
-  const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
-
-  const contractABI = require("../../utils/AutoPassport.json").abi;
 
   const contract = getContract(contractAddress, contractABI);
 
@@ -220,27 +201,17 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
     );
 
   alert(`The token has been created successfully ${transactionHash}`);
-  }
+}
 
-
->>>>>>> Stashed changes
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
-  // {
-<<<<<<< Updated upstream
-  //   id: 'Brand',
-=======
-  //   id: 'brand',
->>>>>>> Stashed changes
-  //   label: 'Brand',
-  //   placeholder: 'Brand',
-  //   type: 'text',
-  // },
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
+  {
+    id: 'brand',
+    label: 'Brand',
+    placeholder: 'Brand',
+    type: 'text',
+  },
   {
     id: 'model',
     label: 'Model',
@@ -254,18 +225,14 @@ const FORM_ITEMS = [
     type: 'text',
     maxLength: 17,
   },
-  // {
-  //   id: 'typeOfFuel',
-  //   label: 'Type of fuel',
-  //   placeholder: 'Type of fuel',
-  //   type: 'text',
-  // },
   {
-<<<<<<< Updated upstream
-    id: 'carColorCode',
-=======
+    id: 'typeOfFuel',
+    label: 'Type of fuel',
+    placeholder: 'Type of fuel',
+    type: 'text',
+  },
+  {
     id: 'colorCode',
->>>>>>> Stashed changes
     label: 'Color code',
     placeholder: 'Color code',
     type: 'text',
@@ -283,8 +250,7 @@ const FORM_ITEMS = [
     id: 'warrantyExpirationDate',
     label: 'Warranty expiration date',
     placeholder: '',
-    type: 'date',
-    max: new Date().toISOString().split("T")[0],
+    type: 'date'
   },
 ];
 
