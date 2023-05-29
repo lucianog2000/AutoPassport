@@ -56,7 +56,7 @@ export default function TokenCreationForm() {
           </Heading>
           <ImageUploader />
 
-          <SelectInput
+          {/* <SelectInput
             id="typeOfFuel" 
             label="Type of fuel" 
             placeholder="Select type of fuel" 
@@ -70,7 +70,7 @@ export default function TokenCreationForm() {
             placeholder="Select brand"
             options={SELECT_BRAND_ITEMS}
             onChange={handleInputChange}
-          />
+          /> */}
 
           {FORM_ITEMS.map((item, index) => (
             <FormControl key={index} id={item.id} isRequired>
@@ -138,7 +138,8 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
   });
 
   const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
-  const contractABI = require("../../../backend-autopassport/hardhat/artifacts/contracts/AutoPassport.sol/AutoPassport.json").abi;
+
+  const contractABI = require("../../utils/AutoPassport.json").abi;
 
   const contract = getContract(contractAddress, contractABI);
 
@@ -156,12 +157,13 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
-  // {
-  //   id: 'brand',
-  //   label: 'Brand',
-  //   placeholder: 'Brand',
-  //   type: 'text',
-  // },
+  {
+    id: 'brand',
+    label: 'Brand',
+    placeholder: 'Brand',
+    type: 'text',
+  },
+
   {
     id: 'model',
     label: 'Model',
@@ -175,12 +177,12 @@ const FORM_ITEMS = [
     type: 'text',
     maxLength: 17,
   },
-  // {
-  //   id: 'typeOfFuel',
-  //   label: 'Type of fuel',
-  //   placeholder: 'Type of fuel',
-  //   type: 'text',
-  // },
+  {
+    id: 'typeOfFuel',
+    label: 'Type of fuel',
+    placeholder: 'Type of fuel',
+    type: 'text',
+  },
   {
     id: 'colorCode',
     label: 'Color code',
