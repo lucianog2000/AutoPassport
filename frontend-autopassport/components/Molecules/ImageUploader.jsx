@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Button, FormControl, FormLabel, Stack, Center, Avatar  } from '@chakra-ui/react'
 
-function ImageUploader() {
+function ImageUploader({handleChange}) {
   const fileInputRef = useRef(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
@@ -19,11 +19,12 @@ function ImageUploader() {
 
     if (file) {
       reader.readAsDataURL(file);
+      handleChange(file);
     }
   };
 
   return (
-    <FormControl id="userName">
+    <FormControl id="userName" isRequired>
       <FormLabel>Vehicle Image</FormLabel>
       <Stack direction={['column', 'row']} spacing={6}>
         <Center>
