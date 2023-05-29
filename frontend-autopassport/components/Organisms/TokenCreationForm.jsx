@@ -6,15 +6,19 @@ import {
   FormLabel,
   Heading,
   Input,
+  Select,
   Stack,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
-import { ethers } from 'ethers';
 import getConfig from 'next/config'
+import { ethers } from 'ethers';
 import SelectInput from '../Molecules/SelectInput';
 import axios from 'axios';
+// import { pinningFileToIPFS } from '../../services/pinningFileToIPFS';
+// import { getContract } from '../../services/getContract';
+// import { createAutoPassport } from '../../services/createAutoPassport';
 
 export default function TokenCreationForm() {
   const router = useRouter();
@@ -22,7 +26,7 @@ export default function TokenCreationForm() {
   const env = getConfig().publicRuntimeConfig
   const contractAddress = env.SMART_CONTRACT_ADDRESS
   const contractABI = require("../../utils/AutoPassport.json").abi;
-  
+
   const handleInputChange = (event) => {
     const { id, value } = event.target;
     setFormValues((prevValues) => ({
@@ -31,13 +35,25 @@ export default function TokenCreationForm() {
     }));
   };
 
+  const handleFile = async (fileData) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      file: fileData,
+    }));
+  };
+
   const handleSubmit = async (event) => {
+
     event.preventDefault();
     try {
+      const fileIPFS = pinningFileToIPFS(formValues); 
+
+      if (fileIPFS) {
+        formValues['file'] = fileIPFS;
+      }
       await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
     } catch (error) {
       const { message } = error;
-      console.log(message);
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
     }
   };
@@ -58,7 +74,7 @@ export default function TokenCreationForm() {
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Create AutoPassport
           </Heading>
-          <ImageUploader />
+          <ImageUploader handleChange={handleFile} />
 
           {/* <SelectInput
             id="typeOfFuel" 
@@ -120,6 +136,38 @@ export default function TokenCreationForm() {
   );
 }
 
+const pinningFileToIPFS = async (formValues) => {
+  const JWT = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI1NzE1YmE3OS1lNmY3LTRiZDgtOTUyZi02YTliMTI3ZDEzOTQiLCJlbWFpbCI6ImZyYW5jb3JvYi5nYXJjaWFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImVjZDJlYzNmYWM2MTcxNmU5OTEyIiwic2NvcGVkS2V5U2VjcmV0IjoiNjY0MGIzYzA3NzYwZTllMjMwOWEwZDVhZTAwMmRjMzYxYWFmZDM3NmM5Mjk0MDcyMWRkODA2ODBhNzFjOTNlYyIsImlhdCI6MTY4NTE1MzMxNn0.46qZ9W_SMH1D6rN084BG4LbhrfjCfosJK86He4p4fl8'
+
+  const formData = new FormData();
+  formData.append('file', formValues.file);
+  const metadata = JSON.stringify({
+    name: 'AutoPassport',
+  });
+  formData.append('pinataMetadata', metadata);
+  const options = JSON.stringify({
+    cidVersion: 0,
+  })
+  formData.append('pinataOptions', options);
+
+  let ipfsHash;
+  try {
+    const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS/", formData, {
+      maxBodyLength: "Infinity",
+      headers: {
+        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
+        Authorization: JWT
+      }
+    });
+    console.log('IPFS File load succesfully');
+    const pinataUrl = 'https://gateway.pinata.cloud/ipfs/'
+    ipfsHash = pinataUrl + res.data.IpfsHash;
+  } catch (error) {
+    console.log('Error fetching IPFS file: ', error);
+  }
+  return ipfsHash;
+}
+
 function getContract(contractAddress, contractABI) {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
@@ -154,6 +202,7 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
 
   alert(`The token has been created successfully ${transactionHash}`);
 }
+
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
@@ -187,7 +236,7 @@ const FORM_ITEMS = [
     label: 'Color code',
     placeholder: 'Color code',
     type: 'text',
-    maxLength: 8,
+    maxLength: 4,
   },
   {
     id: 'dateOfManufacture',
@@ -201,7 +250,7 @@ const FORM_ITEMS = [
     id: 'warrantyExpirationDate',
     label: 'Warranty expiration date',
     placeholder: '',
-    type: 'date',
+    type: 'date'
   },
 ];
 

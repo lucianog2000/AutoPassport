@@ -1,6 +1,7 @@
 import { FormControl, FormLabel, Select } from "@chakra-ui/react";
 
 function SelectInput ({ id, label, placeholder, options, onChange }) {
+
   return (
     <FormControl id={id} isRequired>
       <FormLabel>{label}</FormLabel>
