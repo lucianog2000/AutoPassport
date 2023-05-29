@@ -15,6 +15,7 @@ import getConfig from 'next/config'
 import SelectInput from '../Molecules/SelectInput';
 import { pinningImageToIPFS } from '../../services/IPFS/pinningImageToIPFS';
 import { pinningMetadataToIPFS } from '../../services/IPFS/pinningMetadataToIPFS';
+import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
 import { createAutoPassport } from '../../services/smart-contract/createAutoPassport';
 import { getContract } from '../../services/smart-contract/getContract';
 import { smartContractInteraction } from '../../services/smart-contract/smartContractInteraction';
@@ -45,18 +46,24 @@ export default function TokenCreationForm() {
   const handleSubmit = async (event) => {
 
     event.preventDefault();
-    //temporal
-    formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
     try {
+      //temporal
+      formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
+      //
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+
+      formValues.walletAddress = accounts[0]?.toString();
       
-      const imagePinnedOnIPFS = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
-      if (imagePinnedOnIPFS) {
-        formValues['image'] = imagePinnedOnIPFS;
+      const imageCID = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
+      if (imageCID) {
+        formValues['image'] = 'ipfs://' + imageCID;
       }
 
-      const metadataPinnedOnIPFS = await pinningMetadataToIPFS(formValues, PINATA_JWT)
-      if (metadataPinnedOnIPFS) {
-        formValues['uriIpfsUrl'] = metadataPinnedOnIPFS;
+      const metadataCID = await pinningMetadataToIPFS(formValues, PINATA_JWT)
+      if (metadataCID) {
+        formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
 
       await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
@@ -64,6 +71,8 @@ export default function TokenCreationForm() {
     } catch (error) {
       const { message } = error;
       console.log(message);
+      unpinningFileToIPFS(imageCID, PINATA_JWT)
+      unpinningFileToIPFS(metadataCID, PINATA_JWT)
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
       router.push('/');
     }
@@ -165,7 +174,7 @@ const FORM_ITEMS = [
   {
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
-    placeholder: '0XXXX00XXXX000000',
+    placeholder: 'VIN',
     type: 'text'
   },
   // {

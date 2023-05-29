@@ -1,12 +1,7 @@
 export async function smartContractInteraction(getContract, formValues, smartContractFunction, contractAddress, contractABI) {
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts"
-  });
-
   const contract = getContract(contractAddress, contractABI);
 
-  const { brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl } = formValues;
-  const walletAddress = accounts[0]?.toString();
+  const { brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl, walletAddress } = formValues;
   
   const transactionHash = await smartContractFunction(
     contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
