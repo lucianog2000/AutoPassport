@@ -12,13 +12,17 @@ import {
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
 import { ethers } from 'ethers';
+import getConfig from 'next/config'
 import SelectInput from '../Molecules/SelectInput';
 import axios from 'axios';
 
 export default function TokenCreationForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
-
+  const env = getConfig().publicRuntimeConfig
+  const contractAddress = env.SMART_CONTRACT_ADDRESS
+  const contractABI = require("../../utils/AutoPassport.json").abi;
+  
   const handleInputChange = (event) => {
     const { id, value } = event.target;
     setFormValues((prevValues) => ({
@@ -30,7 +34,7 @@ export default function TokenCreationForm() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await smartContractInteraction(getContract, formValues, createAutoPassport);
+      await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -132,14 +136,10 @@ async function createAutoPassport(contract, walletAddress, brand, model, vehicle
   return transactionHash;
 }
 
-async function smartContractInteraction(getContract, formValues, smartContractFunction) {
+async function smartContractInteraction(getContract, formValues, smartContractFunction, contractAddress, contractABI) {
   const accounts = await window.ethereum.request({
     method: "eth_requestAccounts"
   });
-
-  const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
-
-  const contractABI = require("../../utils/AutoPassport.json").abi;
 
   const contract = getContract(contractAddress, contractABI);
 
@@ -163,7 +163,6 @@ const FORM_ITEMS = [
     placeholder: 'Brand',
     type: 'text',
   },
-
   {
     id: 'model',
     label: 'Model',
