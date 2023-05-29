@@ -6,19 +6,18 @@ import {
   FormLabel,
   Heading,
   Input,
-  Select,
   Stack,
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
 import getConfig from 'next/config'
-import { ethers } from 'ethers';
 import SelectInput from '../Molecules/SelectInput';
-import axios from 'axios';
-// import { pinningFileToIPFS } from '../../services/pinningFileToIPFS';
-// import { getContract } from '../../services/getContract';
-// import { createAutoPassport } from '../../services/createAutoPassport';
+import { pinningImageToIPFS } from '../../services/IPFS/pinningImageToIPFS';
+import { pinningMetadataToIPFS } from '../../services/IPFS/pinningMetadataToIPFS';
+import { createAutoPassport } from '../../services/smart-contract/createAutoPassport';
+import { getContract } from '../../services/smart-contract/getContract';
+import { smartContractInteraction } from '../../services/smart-contract/smartContractInteraction';
 
 export default function TokenCreationForm() {
   const router = useRouter();
@@ -64,7 +63,9 @@ export default function TokenCreationForm() {
       router.push('/');
     } catch (error) {
       const { message } = error;
+      console.log(message);
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
+      router.push('/');
     }
   };
 
@@ -86,7 +87,7 @@ export default function TokenCreationForm() {
           </Heading>
           <ImageUploader handleChange={handleFile} />
 
-          {/* <SelectInput
+          <SelectInput
             id="typeOfFuel" 
             label="Type of fuel" 
             placeholder="Select type of fuel" 
@@ -95,12 +96,12 @@ export default function TokenCreationForm() {
           />
 
           <SelectInput
-            id="Brand"
+            id="brand"
             label="Brand"
             placeholder="Select brand"
             options={SELECT_BRAND_ITEMS}
             onChange={handleInputChange}
-          /> */}
+          />
 
           {FORM_ITEMS.map((item, index) => (
             <FormControl key={index} id={item.id} isRequired>
@@ -146,125 +147,15 @@ export default function TokenCreationForm() {
   );
 }
 
-const pinningImageToIPFS = async (file, PINATA_JWT) => {
-  let ipfsUrl;
-  const formData = new FormData();
-
-  formData.append('file', file);
-  const metadata = JSON.stringify({
-    name: 'tokenImage',
-  });
-  formData.append('pinataMetadata', metadata);
-  const options = JSON.stringify({
-    cidVersion: 0,
-  })
-  formData.append('pinataOptions', options);
-
-  try {
-    const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS/", formData, {
-      maxBodyLength: "Infinity",
-      headers: {
-        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-        Authorization: PINATA_JWT
-      }
-    });
-    console.log('IPFS image load succesfully');
-    ipfsUrl = 'ipfs://' + res.data.IpfsHash;
-  } catch (error) {
-    console.log('Error fetching IPFS file: ', error);
-  }
-  return ipfsUrl;
-}
-
-const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
-  let ipfsUrl;
-  const { brand, model, image, vehicleIdentificationNumber, colorCode, dateOfManufacture, warrantyExpirationDate } = formValues;
-
-  const data = JSON.stringify({
-    "pinataOptions": {
-      "cidVersion": 1
-    },
-    "pinataMetadata": {
-      "name": "tokenMetadata",
-      "keyvalues": {
-        "customKey": "customValue",
-        "customKey2": "customValue2"
-      }
-    },
-    "pinataContent": {
-      "name": `${brand} ${model}`,
-      "description": "Your AutoPassport NFT",
-      "image": image,
-      "brand": brand,
-      "model": model,
-      "vin": vehicleIdentificationNumber,
-      "color-code": colorCode,
-      "Date of Manufacture": dateOfManufacture,
-      "warrantyExpirationDate": warrantyExpirationDate
-    }
-  });
-  try {
-    const config = {
-      method: 'post',
-      url: 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Authorization': PINATA_JWT
-      },
-      data : data
-    };
-    const res = await axios(config);
-    console.log('IPFS nft metadata load succesfully');
-    const pinataUrl = 'https://gateway.pinata.cloud/ipfs/'
-    ipfsUrl = pinataUrl + res.data.IpfsHash;
-  } catch (error) {
-    console.log('Error fetching IPFS nft metadata: ', error);
-  }
-  return ipfsUrl;
-}
-
-function getContract(contractAddress, contractABI) {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = provider.getSigner();
-  const contract = new ethers.Contract(contractAddress, contractABI, signer);
-  return contract;
-}
-
-async function createAutoPassport(contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl) {
-  const transaction = await contract.createAutoPassport(
-    walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
-  );
-  const receipt = await transaction.wait();
-  const transactionHash = receipt.transactionHash;
-  return transactionHash;
-}
-
-async function smartContractInteraction(getContract, formValues, smartContractFunction, contractAddress, contractABI) {
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts"
-  });
-
-  const contract = getContract(contractAddress, contractABI);
-
-  const { brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl } = formValues;
-  const walletAddress = accounts[0]?.toString();
-  
-  const transactionHash = await smartContractFunction(
-    contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
-    );
-  console.log(`The token has been created successfully ${transactionHash}`);
-  alert(`The token has been created successfully ${transactionHash}`);
-}
-
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
-  {
-    id: 'brand',
-    label: 'Brand',
-    placeholder: 'Brand',
-    type: 'text',
-  },
+  // {
+  //   id: 'brand',
+  //   label: 'Brand',
+  //   placeholder: 'Brand',
+  //   type: 'text',
+  // },
   {
     id: 'model',
     label: 'Model',
@@ -277,12 +168,12 @@ const FORM_ITEMS = [
     placeholder: '0XXXX00XXXX000000',
     type: 'text'
   },
-  {
-    id: 'typeOfFuel',
-    label: 'Type of fuel',
-    placeholder: 'Type of fuel',
-    type: 'text',
-  },
+  // {
+  //   id: 'typeOfFuel',
+  //   label: 'Type of fuel',
+  //   placeholder: 'Type of fuel',
+  //   type: 'text',
+  // },
   {
     id: 'colorCode',
     label: 'Color code',
@@ -306,10 +197,10 @@ const FORM_ITEMS = [
 ];
 
 const SELECT_FUEL_ITEMS = [
-  { id: 1, value: 'diesel', name: 'Diesel' },
-  { id: 2, value: 'petrol', name: 'Petrol' },
+  { id: 1, value: 'gasoline', name: 'Gasoline' },
+  { id: 2, value: 'diesel', name: 'Diesel' },
   { id: 3, value: 'electric', name: 'Electric' },
-  { id: 4, value: 'biodiesel', name: 'Bio-Diesel'},
+  { id: 4, value: 'hybrid', name: 'Hybrid' },
 ];
 
 const SELECT_BRAND_ITEMS = [
