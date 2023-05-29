@@ -23,10 +23,11 @@ import axios from 'axios';
 export default function TokenCreationForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
-  const env = getConfig().publicRuntimeConfig
-  const contractAddress = env.SMART_CONTRACT_ADDRESS
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS;
+  const PINATA_JWT = env.PINATA_JWT;
   const contractABI = require("../../utils/AutoPassport.json").abi;
-
+  
   const handleInputChange = (event) => {
     const { id, value } = event.target;
     setFormValues((prevValues) => ({
@@ -38,20 +39,29 @@ export default function TokenCreationForm() {
   const handleFile = async (fileData) => {
     setFormValues((prevValues) => ({
       ...prevValues,
-      file: fileData,
+      image: fileData,
     }));
   };
 
   const handleSubmit = async (event) => {
 
     event.preventDefault();
+    //temporal
+    formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
     try {
-      const fileIPFS = pinningFileToIPFS(formValues); 
-
-      if (fileIPFS) {
-        formValues['file'] = fileIPFS;
+      
+      const imagePinnedOnIPFS = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
+      if (imagePinnedOnIPFS) {
+        formValues['image'] = imagePinnedOnIPFS;
       }
+
+      const metadataPinnedOnIPFS = await pinningMetadataToIPFS(formValues, PINATA_JWT)
+      if (metadataPinnedOnIPFS) {
+        formValues['uriIpfsUrl'] = metadataPinnedOnIPFS;
+      }
+
       await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
+      router.push('/');
     } catch (error) {
       const { message } = error;
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
@@ -136,13 +146,13 @@ export default function TokenCreationForm() {
   );
 }
 
-const pinningFileToIPFS = async (formValues) => {
-  const JWT = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI1NzE1YmE3OS1lNmY3LTRiZDgtOTUyZi02YTliMTI3ZDEzOTQiLCJlbWFpbCI6ImZyYW5jb3JvYi5nYXJjaWFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImVjZDJlYzNmYWM2MTcxNmU5OTEyIiwic2NvcGVkS2V5U2VjcmV0IjoiNjY0MGIzYzA3NzYwZTllMjMwOWEwZDVhZTAwMmRjMzYxYWFmZDM3NmM5Mjk0MDcyMWRkODA2ODBhNzFjOTNlYyIsImlhdCI6MTY4NTE1MzMxNn0.46qZ9W_SMH1D6rN084BG4LbhrfjCfosJK86He4p4fl8'
-
+const pinningImageToIPFS = async (file, PINATA_JWT) => {
+  let ipfsUrl;
   const formData = new FormData();
-  formData.append('file', formValues.file);
+
+  formData.append('file', file);
   const metadata = JSON.stringify({
-    name: 'AutoPassport',
+    name: 'tokenImage',
   });
   formData.append('pinataMetadata', metadata);
   const options = JSON.stringify({
@@ -150,22 +160,67 @@ const pinningFileToIPFS = async (formValues) => {
   })
   formData.append('pinataOptions', options);
 
-  let ipfsHash;
   try {
     const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS/", formData, {
       maxBodyLength: "Infinity",
       headers: {
         'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-        Authorization: JWT
+        Authorization: PINATA_JWT
       }
     });
-    console.log('IPFS File load succesfully');
-    const pinataUrl = 'https://gateway.pinata.cloud/ipfs/'
-    ipfsHash = pinataUrl + res.data.IpfsHash;
+    console.log('IPFS image load succesfully');
+    ipfsUrl = 'ipfs://' + res.data.IpfsHash;
   } catch (error) {
     console.log('Error fetching IPFS file: ', error);
   }
-  return ipfsHash;
+  return ipfsUrl;
+}
+
+const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
+  let ipfsUrl;
+  const { brand, model, image, vehicleIdentificationNumber, colorCode, dateOfManufacture, warrantyExpirationDate } = formValues;
+
+  const data = JSON.stringify({
+    "pinataOptions": {
+      "cidVersion": 1
+    },
+    "pinataMetadata": {
+      "name": "tokenMetadata",
+      "keyvalues": {
+        "customKey": "customValue",
+        "customKey2": "customValue2"
+      }
+    },
+    "pinataContent": {
+      "name": `${brand} ${model}`,
+      "description": "Your AutoPassport NFT",
+      "image": image,
+      "brand": brand,
+      "model": model,
+      "vin": vehicleIdentificationNumber,
+      "color-code": colorCode,
+      "Date of Manufacture": dateOfManufacture,
+      "warrantyExpirationDate": warrantyExpirationDate
+    }
+  });
+  try {
+    const config = {
+      method: 'post',
+      url: 'https://api.pinata.cloud/pinning/pinJSONToIPFS',
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Authorization': PINATA_JWT
+      },
+      data : data
+    };
+    const res = await axios(config);
+    console.log('IPFS nft metadata load succesfully');
+    const pinataUrl = 'https://gateway.pinata.cloud/ipfs/'
+    ipfsUrl = pinataUrl + res.data.IpfsHash;
+  } catch (error) {
+    console.log('Error fetching IPFS nft metadata: ', error);
+  }
+  return ipfsUrl;
 }
 
 function getContract(contractAddress, contractABI) {
@@ -191,15 +246,13 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
 
   const contract = getContract(contractAddress, contractABI);
 
-  const { brand, model, vehicleIdentificationNumber, colorCode } = formValues;
+  const { brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl } = formValues;
   const walletAddress = accounts[0]?.toString();
-  const dateOfManufacture = new Date().toISOString().split("T")[0].toString();
-  const uriIpfsUrl = "/";
   
   const transactionHash = await smartContractFunction(
     contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
     );
-
+  console.log(`The token has been created successfully ${transactionHash}`);
   alert(`The token has been created successfully ${transactionHash}`);
 }
 
@@ -222,8 +275,7 @@ const FORM_ITEMS = [
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
     placeholder: '0XXXX00XXXX000000',
-    type: 'text',
-    maxLength: 17,
+    type: 'text'
   },
   {
     id: 'typeOfFuel',
@@ -235,8 +287,7 @@ const FORM_ITEMS = [
     id: 'colorCode',
     label: 'Color code',
     placeholder: 'Color code',
-    type: 'text',
-    maxLength: 4,
+    type: 'text'
   },
   {
     id: 'dateOfManufacture',
