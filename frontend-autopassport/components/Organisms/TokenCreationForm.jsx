@@ -138,6 +138,7 @@ async function smartContractInteraction(getContract, formValues, smartContractFu
   });
 
   const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
+
   const contractABI = require("../../utils/AutoPassport.json").abi;
 
   const contract = getContract(contractAddress, contractABI);
@@ -162,6 +163,7 @@ const FORM_ITEMS = [
     placeholder: 'Brand',
     type: 'text',
   },
+
   {
     id: 'model',
     label: 'Model',
