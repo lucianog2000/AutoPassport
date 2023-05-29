@@ -65,7 +65,7 @@ export default function TokenCreationForm() {
       });
       console.log('Response has pinJsson',res.data.IpfsHash);
       const pinataUrl = 'https://gateway.pinata.cloud/ipfs/'
-      // TODO: - Guardar el hash de IPFS en la blockchain
+      // TODO: - Guardar el hash de IPFS en la blockchain 👇
       const ipfsHash = pinataUrl + res.data.IpfsHash;
       } catch (error) {
       console.log(error);
