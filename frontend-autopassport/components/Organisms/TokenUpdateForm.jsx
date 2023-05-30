@@ -18,13 +18,11 @@ import { updatingMetadataToIPFS } from '../../services/IPFS/updatingMetadataToIP
 
 export default function TokenUpdateForm(){
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
   const [fuelTypes, setFuelTypes] = useState([]);
   const { handleSubmit, register, errors } = useForm();
 
   useEffect(() => {
-    setLoading(true)
     const fetchFuelTypes = async () => {
       getAllFuels()
       .then((fuelTypes) => {
@@ -32,9 +30,6 @@ export default function TokenUpdateForm(){
       })
       .catch((error) => {
         console.log(error)
-      })
-      .finally(() => { 
-        setLoading(false)
       })
     }
     fetchFuelTypes();
@@ -53,10 +48,6 @@ export default function TokenUpdateForm(){
     catch(error) {
       console.log('error: ', error)
     }
-  }
-
-  if (loading) {
-    return <div>Loading...</div>;
   }
     return (
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -128,9 +119,9 @@ export default function TokenUpdateForm(){
 
   const FORM_ITEMS = [
   { 
-    id: 'kilometersOrMiles',
-    label: 'Kilometers or miles',
-    placeholder: 'Kilometers or miles',
+    id: 'mileage',
+    label: 'Mileage',
+    placeholder: 'Mileage',
     isRequired: true,
     type: 'number'
   },
@@ -140,12 +131,12 @@ export default function TokenUpdateForm(){
   //   placeholder: 'Type of fuel',
   //   type: 'text'
   // },
-  { 
-    id: 'carColorCode',
-    label: 'Color code',
-    placeholder: 'Color code',
-    type: 'text'
-  },
+  // { 
+  //   id: 'carColorCode',
+  //   label: 'Color code',
+  //   placeholder: 'Color code',
+  //   type: 'text'
+  // },
   // { 
   //   id: 'repairHistory',
   //   label: 'Repair history',
@@ -186,7 +177,7 @@ const RepairSection = ({register}) => {
       <Flex>
         <FormLabel>Add repair:</FormLabel>
         <Button size="sm" onClick={handleAddRepair}>
-          add
+          +
         </Button>
       </Flex>
 
