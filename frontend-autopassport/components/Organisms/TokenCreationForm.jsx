@@ -11,14 +11,21 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import ImageUploader from '../Molecules/ImageUploader';
-import { ethers } from 'ethers';
+import getConfig from 'next/config'
 import SelectInput from '../Molecules/SelectInput';
-import axios from 'axios';
+import { pinningImageToIPFS } from '../../services/IPFS/pinningImageToIPFS';
+import { pinningMetadataToIPFS } from '../../services/IPFS/pinningMetadataToIPFS';
+import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
+import { handleTokenCreation } from '../../services/smart-contract/handleCreationToken';
 
 export default function TokenCreationForm() {
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
-
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS;
+  const PINATA_JWT = env.PINATA_JWT;
+  const contractABI = require("../../utils/AutoPassport.json").abi;
+  
   const handleInputChange = (event) => {
     const { id, value } = event.target;
     setFormValues((prevValues) => ({
@@ -27,14 +34,50 @@ export default function TokenCreationForm() {
     }));
   };
 
+  const handleFile = async (fileData) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      image: fileData,
+    }));
+  };
+
   const handleSubmit = async (event) => {
+
     event.preventDefault();
     try {
-      await smartContractInteraction(getContract, formValues, createAutoPassport);
+      //seteamos temporalmente la fecha de fabricacion ya que no se esta levantando el dato desde el form
+      formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
+      //obtenemos la cuenta de metamask conectada a nuestra app
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+      //seteamos la cuenta de metamask como walletAddress como string
+      formValues.walletAddress = accounts[0]?.toString();
+      //subimos la imagen a pinata y obtenemos el CID
+      const imageCID = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
+      if (imageCID) {
+        //guardamos la url de la imagen en formValues
+        formValues['image'] = 'https://gateway.pinata.cloud/ipfs/' + imageCID;
+      }
+      //subimos a pinata la metadata/uri que va a corresponder al nft y obtenemos el CID
+      const metadataCID = await pinningMetadataToIPFS(formValues, PINATA_JWT)
+      if (metadataCID) {
+        //guardamos la url de la metadata/uri en formValues
+        formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
+      }
+      //interactuamos con el smart contract para crear el nft
+      await handleTokenCreation(formValues, contractAddress, contractABI);
+      //redireccionamos a la home para evitar problemas en el form
+      router.push('/');
     } catch (error) {
       const { message } = error;
       console.log(message);
+      //si ocurre un error al crear el nft, eliminamos la imagen y la metadata/uri de pinata
+      unpinningFileToIPFS(imageCID, PINATA_JWT)
+      unpinningFileToIPFS(metadataCID, PINATA_JWT)
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
+      //redireccionamos a la home para evitar problemas en el form
+      router.push('/');
     }
   };
 
@@ -54,7 +97,7 @@ export default function TokenCreationForm() {
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Create AutoPassport
           </Heading>
-          <ImageUploader />
+          <ImageUploader handleChange={handleFile} />
 
           <SelectInput
             id="typeOfFuel" 
@@ -65,7 +108,7 @@ export default function TokenCreationForm() {
           />
 
           <SelectInput
-            id="Brand"
+            id="brand"
             label="Brand"
             placeholder="Select brand"
             options={SELECT_BRAND_ITEMS}
@@ -116,43 +159,6 @@ export default function TokenCreationForm() {
   );
 }
 
-function getContract(contractAddress, contractABI) {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = provider.getSigner();
-  const contract = new ethers.Contract(contractAddress, contractABI, signer);
-  return contract;
-}
-
-async function createAutoPassport(contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl) {
-  const transaction = await contract.createAutoPassport(
-    walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
-  );
-  const receipt = await transaction.wait();
-  const transactionHash = receipt.transactionHash;
-  return transactionHash;
-}
-
-async function smartContractInteraction(getContract, formValues, smartContractFunction) {
-  const accounts = await window.ethereum.request({
-    method: "eth_requestAccounts"
-  });
-
-  const contractAddress = "0xf104C43C220a9d63Bf5CC6F715B09ad83028C72d";
-  const contractABI = require("../../../backend-autopassport/hardhat/artifacts/contracts/AutoPassport.sol/AutoPassport.json").abi;
-
-  const contract = getContract(contractAddress, contractABI);
-
-  const { brand, model, vehicleIdentificationNumber, colorCode } = formValues;
-  const walletAddress = accounts[0]?.toString();
-  const dateOfManufacture = new Date().toISOString().split("T")[0].toString();
-  const uriIpfsUrl = "/";
-  
-  const transactionHash = await smartContractFunction(
-    contract, walletAddress, brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, uriIpfsUrl
-    );
-
-  alert(`The token has been created successfully ${transactionHash}`);
-}
 // TODO: - Export in another file and import here
 //       - SELECT ITEMS must be fetched from a database.
 const FORM_ITEMS = [
@@ -171,9 +177,8 @@ const FORM_ITEMS = [
   {
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
-    placeholder: '0XXXX00XXXX000000',
-    type: 'text',
-    maxLength: 17,
+    placeholder: 'VIN',
+    type: 'text'
   },
   // {
   //   id: 'typeOfFuel',
@@ -185,8 +190,7 @@ const FORM_ITEMS = [
     id: 'colorCode',
     label: 'Color code',
     placeholder: 'Color code',
-    type: 'text',
-    maxLength: 8,
+    type: 'text'
   },
   {
     id: 'dateOfManufacture',
@@ -200,15 +204,15 @@ const FORM_ITEMS = [
     id: 'warrantyExpirationDate',
     label: 'Warranty expiration date',
     placeholder: '',
-    type: 'date',
+    type: 'date'
   },
 ];
 
 const SELECT_FUEL_ITEMS = [
-  { id: 1, value: 'diesel', name: 'Diesel' },
-  { id: 2, value: 'petrol', name: 'Petrol' },
+  { id: 1, value: 'gasoline', name: 'Gasoline' },
+  { id: 2, value: 'diesel', name: 'Diesel' },
   { id: 3, value: 'electric', name: 'Electric' },
-  { id: 4, value: 'biodiesel', name: 'Bio-Diesel'},
+  { id: 4, value: 'hybrid', name: 'Hybrid' },
 ];
 
 const SELECT_BRAND_ITEMS = [
