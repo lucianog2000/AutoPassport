@@ -16,9 +16,7 @@ import SelectInput from '../Molecules/SelectInput';
 import { pinningImageToIPFS } from '../../services/IPFS/pinningImageToIPFS';
 import { pinningMetadataToIPFS } from '../../services/IPFS/pinningMetadataToIPFS';
 import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
-import { createAutoPassport } from '../../services/smart-contract/createAutoPassport';
-import { getContract } from '../../services/smart-contract/getContract';
-import { smartContractInteraction } from '../../services/smart-contract/smartContractInteraction';
+import { handleTokenCreation } from '../../services/smart-contract/handleCreationToken';
 
 export default function TokenCreationForm() {
   const router = useRouter();
@@ -47,33 +45,38 @@ export default function TokenCreationForm() {
 
     event.preventDefault();
     try {
-      //temporal
+      //seteamos temporalmente la fecha de fabricacion ya que no se esta levantando el dato desde el form
       formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
-      //
+      //obtenemos la cuenta de metamask conectada a nuestra app
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts"
       });
-
+      //seteamos la cuenta de metamask como walletAddress como string
       formValues.walletAddress = accounts[0]?.toString();
-      
+      //subimos la imagen a pinata y obtenemos el CID
       const imageCID = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
       if (imageCID) {
-        formValues['image'] = 'ipfs://' + imageCID;
+        //guardamos la url de la imagen en formValues
+        formValues['image'] = 'https://gateway.pinata.cloud/ipfs/' + imageCID;
       }
-
+      //subimos a pinata la metadata/uri que va a corresponder al nft y obtenemos el CID
       const metadataCID = await pinningMetadataToIPFS(formValues, PINATA_JWT)
       if (metadataCID) {
+        //guardamos la url de la metadata/uri en formValues
         formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
-
-      await smartContractInteraction(getContract, formValues, createAutoPassport, contractAddress, contractABI);
+      //interactuamos con el smart contract para crear el nft
+      await handleTokenCreation(formValues, contractAddress, contractABI);
+      //redireccionamos a la home para evitar problemas en el form
       router.push('/');
     } catch (error) {
       const { message } = error;
       console.log(message);
+      //si ocurre un error al crear el nft, eliminamos la imagen y la metadata/uri de pinata
       unpinningFileToIPFS(imageCID, PINATA_JWT)
       unpinningFileToIPFS(metadataCID, PINATA_JWT)
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
+      //redireccionamos a la home para evitar problemas en el form
       router.push('/');
     }
   };
