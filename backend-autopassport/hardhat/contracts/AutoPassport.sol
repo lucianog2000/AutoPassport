@@ -54,7 +54,18 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         emit Creation(to, tokenId, vin);
     } 
 
+    // function editAutoPassport(uint mileage, Array reparaciones, Array mantenimientos) public onlyOwner {
+    //     require(_vinToTokenId[vin] == 0, "Car with this VIN already exists");
+    //     address owner = to;
+    //     uint256 tokenId = _tokenIdCounter.current();
+    //     _cars[tokenId] = Car(brand, model, vin, color_code, dateOfManufacture, 0);
+    //     _vinToTokenId[vin] = tokenId;
+    //     _tokenIdCounter.increment();
+    //     _safeMint(owner, tokenId);
+    //     _setTokenURI(tokenId, uriIpfsUrl);
 
+    //     emit Creation(to, tokenId, vin);
+    // } 
     // function getCarByTokenId(uint256 tokenId) public view returns(string memory brand, string memory model, string memory vin, string memory color_code, uint dateOfManufacture, uint mileage) {
     //     Car storage carObject = _cars[tokenId];
     //     brand = carObject.brand;
