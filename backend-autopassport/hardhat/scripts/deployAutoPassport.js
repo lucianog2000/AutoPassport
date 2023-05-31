@@ -1,6 +1,6 @@
 const hre = require("hardhat");
 async function main() {
-  const getAutoPassportContract = await hre.ethers.getContractFactory("AutoPassport");
+  const getAutoPassportContract = await hre.ethers.getContractFactory("AutoPassportW");
   const contract = await getAutoPassportContract.deploy();
   await contract.deployed();
   console.log("Contract successfully deployed to", contract.address);
