@@ -1,0 +1,18 @@
+{
+    "name": "Honda Civic SI",
+    "description": "Your AutoPassport NFT",
+    "image": "ipfs://QmbMy8HEKXGHXHC2pzR11T6Y2KB6KUXHnou2bmvV4W3zja",
+    "attributes": {
+      "brand": "Honda",
+      "model": "Civic SI",
+      "vin": "H241521CSIaaAS2",
+      "mileage": 1000,
+      "color_code": "RED30HC",
+      "date_of_manufacture": "2023-05-30",
+      "warranty_expiration_date": "2023-05-30",
+      "fuel_type": "gasoline",
+      "repair_history": [],
+      "maintenance_history": [],
+      "last_update": "2024-03-20"
+    }
+}
