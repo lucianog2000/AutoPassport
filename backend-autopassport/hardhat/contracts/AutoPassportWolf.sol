@@ -14,18 +14,20 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
 
     event Creation(address indexed from, uint256 indexed tokenId, string vin);
     event MaintenanceAdded(string indexed vin, string maintenance);
+    event RepairAdded(string indexed vin, string repairs);
+
     event updateOfUpdates(
         address indexed owner,
         uint256 indexed tokenId,
         string newCar,
-        string[] reparations,
-        string[] maintenance
+        string[] maintenance,
+        string[] repairs
     );
     struct Car {
         string vin;
         uint kilometers;
-        string[] maintenance; 
-        string[] reparations;
+        string[] maintenance;
+        string[] repairs;
     }
 
     Counters.Counter private _tokenIdCounter;
@@ -44,12 +46,10 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
 
     /**
      * Creates a track record of a new car.
-     * Transaction will fail (and burn gas!) if the car already exists.
+     * Transaction will fail (and burn gas!) if the car VIN already exists.
      */
 
-    function createCar(
-        string memory vin
-    ) public onlyOwner {
+    function createCar(string memory vin) public onlyOwner {
         require(_vinToTokenId[vin] == 0, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current();
         _cars[tokenId] = Car(vin, 0, new string[](0), new string[](0));
@@ -64,6 +64,7 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
      * the new kilometer value is lower than the old one.
      */
     //    function updateOfUpdates(string memory vin, uint kilometer,  )
+
     /**
      * Updates the current kilometers of the car. Transactions fails and burns gas if
      * the new kilometer value is lower than the old one.
@@ -83,68 +84,91 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
     }
 
     /**
-     * Updates the current kilometers of the car. Transactions fails and burns gas if
-     * the new kilometer value is lower than the old one.
+     * Updates the mantainance of the car.
      */
     function addManteinance(
-    string memory vin,
-    string memory newMaintenance
-) public {
-    uint256 tokenId = _vinToTokenId[vin];
-    require(_msgSender() == ownerOf(tokenId), "Only the owner can add maintenance");
+        string memory vin,
+        string memory newMaintenance
+    ) public {
+        uint256 tokenId = _vinToTokenId[vin];
+        require(
+            _msgSender() == ownerOf(tokenId),
+            "Only the owner can add maintenance"
+        );
 
-    Car storage carObject = _cars[tokenId];
-    require(bytes(newMaintenance).length > 0, "New maintenance string must not be empty");
+        Car storage carObject = _cars[tokenId];
+        require(
+            bytes(newMaintenance).length > 0,
+            "New maintenance string must not be empty"
+        );
 
-    carObject.maintenance.push(newMaintenance);
-    // _carMaintenance[tokenId].push(newMaintenance);
+        // Append the newMaintenance variable to the maintenance array
+        carObject.maintenance.push(newMaintenance);
 
-    emit updateOfUpdates(
-        ownerOf(tokenId),
-        tokenId,
-        carObject.vin,
-        carObject.reparations,
-        carObject.maintenance
-    );
+        // Emit the MaintenanceAdded event
+        emit MaintenanceAdded(vin, newMaintenance);
+    }
+
+    /**
+     * Add Repairs of the car.
+     */
+    function addRepair(string memory vin, string memory newRepair) public {
+        uint256 tokenId = _vinToTokenId[vin];
+        require(
+            _msgSender() == ownerOf(tokenId),
+            "Only the owner can add a repair"
+        );
+
+        Car storage carObject = _cars[tokenId];
+
+        carObject.repairs.push(newRepair);
+        require(
+            bytes(newRepair).length > 0,
+            "New repair string must not be empty"
+        );
+
+        emit RepairAdded(vin, newRepair);
+    }
+
+    /**
+     * Read Functions.
+     */
+
+    function getCarByTokenId(
+        uint256 tokenId
+    )
+        public
+        view
+        returns (
+            string memory vin,
+            uint kilometers,
+            string[] memory maintenance,
+            string[] memory repairs
+        )
+    {
+        Car storage carObject = _cars[tokenId];
+        vin = carObject.vin;
+        kilometers = carObject.kilometers;
+        maintenance = carObject.maintenance;
+        repairs = carObject.repairs;
+    }
+
+    function getCarByVIN(
+        string memory vin
+    )
+        public
+        view
+        returns (
+            uint256 tokenId,
+            uint kilometers,
+            string[] memory maintenance,
+            string[] memory repairs
+        )
+    {
+        tokenId = _vinToTokenId[vin];
+        Car storage carObject = _cars[tokenId];
+        kilometers = carObject.kilometers;
+        repairs = carObject.repairs;
+        maintenance = carObject.maintenance;
+    }
 }
-    function getCarByTokenId(uint256 tokenId)
-    public
-    view
-    returns (string memory vin, uint kilometers, string memory color, string[] memory maintenance)
-{
-    Car storage carObject = _cars[tokenId];
-    vin = carObject.vin;
-    kilometers = carObject.kilometers;
-     maintenance = carObject.maintenance;
-}
-
-    function getCarByVIN(string memory vin)
-    public
-    view
-    returns (uint256 tokenId, uint kilometers, string[] memory maintenance)
-{
-    tokenId = _vinToTokenId[vin];
-    Car storage carObject = _cars[tokenId];
-    kilometers = carObject.kilometers;
-
-     maintenance = carObject.maintenance;
-}
-}
-
-/**
- * Updates the color of the car. Transactions fails and burns gas if
- * the car is not owned by the caller.
- */
-// function updateColor(string memory vin, string memory newColor) public {
-//     uint256 tokenId = _vinToTokenId[vin];
-//     require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: transfer caller is not owner nor approved");
-//     Car storage carObject = _cars[tokenId];
-//     carObject.color = newColor;
-//     emit ColorUpdate(msg.sender, tokenId, newColor);
-// }
-
-// event ColorUpdate(
-//     address indexed owner,
-//     uint256 indexed tokenId,
-//     string newColor
-// );

@@ -12,7 +12,7 @@
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
-    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/contracts": "^4.9.0",
     "@openzeppelin/hardhat-upgrades": "^1.27.0",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
