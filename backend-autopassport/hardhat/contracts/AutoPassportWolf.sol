@@ -16,13 +16,14 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
     event MaintenanceAdded(string indexed vin, string maintenance);
     event RepairAdded(string indexed vin, string repairs);
 
-    event updateOfUpdates(
-        address indexed owner,
-        uint256 indexed tokenId,
-        string newCar,
-        string[] maintenance,
-        string[] repairs
-    );
+    // event updateOfUpdates(
+    //     address indexed owner,
+    //     uint256 indexed tokenId,
+    //     string newCar,
+    //     string[] maintenance,
+    //     string[] repairs
+    // );
+
     struct Car {
         string vin;
         uint kilometers;
@@ -97,6 +98,7 @@ contract AutoPassportW is ERC721, ERC721Burnable, Ownable {
         );
 
         Car storage carObject = _cars[tokenId];
+        
         require(
             bytes(newMaintenance).length > 0,
             "New maintenance string must not be empty"
