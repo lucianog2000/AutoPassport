@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
   let metadataCID;
-  const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate, walletAddress } = formValues;
+  const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate } = formValues;
 
   const data = JSON.stringify({
     "pinataOptions": {
@@ -19,7 +19,19 @@ export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
       "name": `${brand} ${model}`,
       "description": "Your AutoPassport NFT",
       "image": image,
-      "attributes": setCreationAttributes(brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, warrantyExpirationDate, typeOfFuel, walletAddress)
+      "attributes": {
+        "brand": brand,
+        "model": model,
+        "vin": vehicleIdentificationNumber,
+        "mileage": 0,
+        "color_code": colorCode,
+        "date_of_manufacture": dateOfManufacture,
+        "warranty_expiration_date": warrantyExpirationDate,
+        "fuel_type": typeOfFuel,
+        "repair_history": [],
+        "maintenance_history": [],
+        "last_update": dateOfManufacture
+      }
     }
   });
   try {
@@ -42,76 +54,3 @@ export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
   return metadataCID;
 }
 
-function setCreationAttributes(brand, model, vehicleIdentificationNumber, colorCode, dateOfManufacture, warrantyExpirationDate, typeOfFuel, walletAddress) {
-  return [
-    {
-      "trait_type": "Brand", 
-      "value": brand
-    },
-    {
-      "trait_type": "Model", 
-      "value": model
-    },
-    {
-      "trait_type": "VIN", 
-      "value": vehicleIdentificationNumber
-    },
-    {
-      "trait_type": "Mileage", 
-      "value": 0
-    },
-    {
-      "trait_type": "Color Code", 
-      "value": colorCode
-    },
-    {
-      "display_type": "date",
-      "trait_type": "Date Of Manufacture", 
-      "value": dateOfManufacture
-    },
-    {
-      "display_type": "date",
-      "trait_type": "Warranty Expiration Date", 
-      "value": warrantyExpirationDate
-    },
-    {
-      "trait_type": "Fuel type", 
-      "value": typeOfFuel
-    },
-    {
-      "trait_type": "Repair History", 
-      "value": []
-    },
-    {
-      "trait_type": "Maintenance History", 
-      "value": []
-    },
-    {
-      "trait_type": "Current Owner", 
-      "value": walletAddress
-    },
-    {
-      "trait_type": "Previous Owners", 
-      "value": []
-    },
-    {
-      "trait_type": "Last Update", 
-      "value": dateOfManufacture
-    },
-  ];
-}
-// {
-//   "brand": brand,
-//   "model": model,
-//   "vin": vehicleIdentificationNumber,
-//   "mileage": 0,
-//   "color-code": colorCode,
-//   "date-of-manufacture": dateOfManufacture,
-//   "warranty-expiration-date": warrantyExpirationDate,
-//   "fuel-type": typeOfFuel,
-//   "repair_history": [],
-//   "maintenance_history": [],
-//   "current_owner": walletAddress,
-//   "previous_owners": [],
-//   "last_update": dateOfManufacture
-// }
