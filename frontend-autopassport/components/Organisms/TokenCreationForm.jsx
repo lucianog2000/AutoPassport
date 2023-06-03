@@ -42,7 +42,7 @@ export default function TokenCreationForm() {
   };
 
   const handleSubmit = async (event) => {
-
+    console.log(PINATA_JWT)
     event.preventDefault();
     try {
       //seteamos temporalmente la fecha de fabricacion ya que no se esta levantando el dato desde el form
@@ -73,8 +73,8 @@ export default function TokenCreationForm() {
       const { message } = error;
       console.log(message);
       //si ocurre un error al crear el nft, eliminamos la imagen y la metadata/uri de pinata
-      unpinningFileToIPFS(imageCID, PINATA_JWT)
-      unpinningFileToIPFS(metadataCID, PINATA_JWT)
+      // unpinningFileToIPFS(imageCID, PINATA_JWT)
+      // unpinningFileToIPFS(metadataCID, PINATA_JWT)
       alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
       //redireccionamos a la home para evitar problemas en el form
       router.push('/');
