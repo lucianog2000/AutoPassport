@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
   let metadataCID;
-  const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate } = formValues;
+  const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
 
   const data = JSON.stringify({
     "pinataOptions": {
@@ -30,7 +30,7 @@ export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
         "fuel_type": typeOfFuel,
         "repair_history": [],
         "maintenance_history": [],
-        "last_update": dateOfManufacture
+        "last_update": last_update
       }
     }
   });
