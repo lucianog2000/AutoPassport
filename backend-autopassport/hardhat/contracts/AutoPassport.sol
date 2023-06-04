@@ -28,12 +28,16 @@ contract AutoPassport is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         string vin;
         string colorCode;
         string dateOfManufacture;
+        string warrantyExpirationDate;
+        string fuelType;
         uint mileage;
         string[] repairHistory;
         string[] maintenanceHistory;
+        string lastUpdate;
     }
 
     Counters.Counter private _tokenIdCounter;
+
     mapping (string => uint256) private _vinToTokenId;
     mapping (uint256 => Car) private _cars;
 
@@ -69,7 +73,7 @@ contract AutoPassport is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
             new string[](0),
             lastUpdate);
         _mint(to, tokenId);
-        _setTokenURI(tokenId, tokenURI);
+        _setTokenURI(tokenId, uriIpfsUrl);
         _vinToTokenId[vin] = tokenId;
         _tokenIdCounter.increment();
 
