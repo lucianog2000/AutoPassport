@@ -16,7 +16,7 @@ import SelectInput from '../Molecules/SelectInput';
 import { pinningImageToIPFS } from '../../services/IPFS/pinningImageToIPFS';
 import { pinningMetadataToIPFS } from '../../services/IPFS/pinningMetadataToIPFS';
 import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
-import { handleTokenCreation } from '../../services/smart-contract/handleCreationToken';
+import { handleCreationToken } from '../../services/smart-contract/handleCreationToken';
 
 export default function TokenCreationForm() {
   const router = useRouter();
@@ -61,13 +61,32 @@ export default function TokenCreationForm() {
         formValues['image'] = 'https://gateway.pinata.cloud/ipfs/' + imageCID;
       }
       //subimos a pinata la metadata/uri que va a corresponder al nft y obtenemos el CID
-      metadataCID = await pinningMetadataToIPFS(formValues, PINATA_JWT)
+      const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
+      const tokenMetadata = {
+        "name": `${brand} ${model}`,
+        "description": "Your AutoPassport NFT",
+        "image": image,
+        "attributes": {
+          "brand": brand,
+          "model": model,
+          "vin": vehicleIdentificationNumber,
+          "mileage": 0,
+          "color_code": colorCode,
+          "date_of_manufacture": dateOfManufacture,
+          "warranty_expiration_date": warrantyExpirationDate,
+          "fuel_type": typeOfFuel,
+          "repair_history": [],
+          "maintenance_history": [],
+          "last_update": last_update
+        }
+      }
+      metadataCID = await pinningMetadataToIPFS(tokenMetadata, PINATA_JWT)
       if (metadataCID) {
         //guardamos la url de la metadata/uri en formValues
         formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
       //interactuamos con el smart contract para crear el nft
-      await handleTokenCreation(formValues, contractAddress, contractABI);
+      await handleCreationToken(formValues, contractAddress, contractABI);
       //redireccionamos a la home para evitar problemas en el form
       router.push('/');
     } catch (error) {

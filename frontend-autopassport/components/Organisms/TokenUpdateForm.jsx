@@ -9,44 +9,76 @@ import {
     Stack,
     useColorModeValue,
 } from '@chakra-ui/react';
-
+import getConfig from 'next/config'
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';  
 import SelectInput from '../Molecules/SelectInput';
 import { getAllFuels } from '../../services/firebase/fuelService';
-import { updatingMetadataToIPFS } from '../../services/IPFS/updatingMetadataToIPFS';
+import { handleViewToken } from '../../services/smart-contract/handleViewToken';
+import axios from 'axios';
+import { pinningMetadataToIPFS } from '@components/services/IPFS/pinningMetadataToIPFS';
+import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
+import { handleUpdateToken } from '@components/services/smart-contract/handleUpdateToken';
 
 export default function TokenUpdateForm(){
   const router = useRouter();
-
-  const [fuelTypes, setFuelTypes] = useState([]);
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS;
+  const PINATA_JWT = env.PINATA_JWT;
+  const contractABI = require("../../utils/AutoPassport.json").abi;
+  // const [fuelTypes, setFuelTypes] = useState([]);
   const { handleSubmit, register, errors } = useForm();
 
-  useEffect(() => {
-    const fetchFuelTypes = async () => {
-      getAllFuels()
-      .then((fuelTypes) => {
-        setFuelTypes(fuelTypes.map((doc) => ({ ...doc.data(), id: doc.id })))
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-    }
-    fetchFuelTypes();
-  }, []);
+  // useEffect(() => {
+  //   const fetchFuelTypes = async () => {
+  //     getAllFuels()
+  //     .then((fuelTypes) => {
+  //       setFuelTypes(fuelTypes.map((doc) => ({ ...doc.data(), id: doc.id })))
+  //     })
+  //     .catch((error) => {
+  //       console.log(error)
+  //     })
+  //   }
+  //   fetchFuelTypes();
+  // }, []);
 
   const onSubmit = async (formData) => {
-    console.log('data submitted: ', formData)
     try {
-      const metadataCID = 'QmYho9sTYU7kyFiQRwboG5LjQGxudhwwb9gAqAMY373XVB'
-      const dataToUpdate = formData
-      const PINATA_JWT = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI1NzE1YmE3OS1lNmY3LTRiZDgtOTUyZi02YTliMTI3ZDEzOTQiLCJlbWFpbCI6ImZyYW5jb3JvYi5nYXJjaWFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImVjZDJlYzNmYWM2MTcxNmU5OTEyIiwic2NvcGVkS2V5U2VjcmV0IjoiNjY0MGIzYzA3NzYwZTllMjMwOWEwZDVhZTAwMmRjMzYxYWFmZDM3NmM5Mjk0MDcyMWRkODA2ODBhNzFjOTNlYyIsImlhdCI6MTY4NTE1MzMxNn0.46qZ9W_SMH1D6rN084BG4LbhrfjCfosJK86He4p4fl8'
-      // TODO: Fix bugs with updating metadata to IPFS
-      // response is 200 but metadata is not updated
-      const response = await updatingMetadataToIPFS(metadataCID, dataToUpdate, PINATA_JWT)
-    }
-    catch(error) {
-      console.log('error: ', error)
+      // obtenemos los metadatos del auto
+      const tokenData = await handleViewToken(vin, contractAddress, contractABI);
+      const oldCID = tokenData.uri.split("ipfs/")[1];
+      const metadata = await axios.get(tokenData.uri)
+      // actualizamos los metadatos del auto
+      metadata.data.attributes.last_update = new Date().toISOString().split("T")[0];
+      metadata.data.attributes.mileage = parseInt(formData.mileage);
+      if (formData.maintenance) {
+        metadata.data.attributes.maintenance_history = [{
+          "date": new Date().toISOString().split("T")[0],
+          "description": formData.maintenance[0].maintenanceDescription,
+          "replacementParts": formData.maintenance[0].replacementParts
+        }]
+      }
+      if (formData.repairs) {
+        metadata.data.attributes.repair_history = [{
+          "date": new Date().toISOString().split("T")[0],
+          "description": formData.repairs[0].repairDescription,
+          "replacementParts": formData.repairs[0].replacementParts
+        }]
+      }
+      // subirla a pinata y obtener nuevo CID
+      const metadataCID = await pinningMetadataToIPFS(metadata.data, PINATA_JWT);
+      if (metadataCID) {
+        metadata.data.attributes['newURI'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
+      }
+      // actualizar el token
+      await handleUpdateToken(metadata.data.attributes, contractAddress, contractABI)
+      // eliminar la metadata vieja de pinata
+      if (oldCID) {
+        unpinningFileToIPFS(oldCID, PINATA_JWT);
+      }
+    } catch (error) {
+      const { message } = error;
+      console.log(message);
     }
   }
     return (
@@ -67,13 +99,13 @@ export default function TokenUpdateForm(){
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Update AutoPassport
           </Heading>
-          <SelectInput 
+          {/* <SelectInput 
             id="typeOfFuel"
             label="Type of fuel"
             placeholder="Type of fuel"
             options={fuelTypes}
             register={register("typeOfFuel", { required: true })}
-          />
+          /> */}
   
           {FORM_ITEMS.map((item, length) => (
               <FormControl key={length} id={item.id} isRequired={item.isRequired}>
@@ -82,13 +114,13 @@ export default function TokenUpdateForm(){
                 placeholder={item.placeholder}
                 _placeholder={{ color: 'gray.500' }}
                 type={item.type}
-                {...register(item.label, { required: true })}
+                {...register(item.id, { required: true })}
               />
             </FormControl>
           ))}
   
           <RepairSection register={register}/>
-          {/* <MantenanceSection register={register} /> */}
+          <MaintenanceSection register={register} />
   
           <Stack spacing={6} direction={['column', 'row']}>
             <Button
@@ -117,38 +149,21 @@ export default function TokenUpdateForm(){
     );
   }
 
-  const FORM_ITEMS = [
+const FORM_ITEMS = [
+  {
+    id: 'vin',
+    label: 'VIN',
+    placeholder: 'VIN',
+    isRequired: true,
+    type: 'string'
+  },
   { 
     id: 'mileage',
     label: 'Mileage',
     placeholder: 'Mileage',
     isRequired: true,
     type: 'number'
-  },
-  // { 
-  //   id: 'typeOfFuel',
-  //   label: 'Type of fuel',
-  //   placeholder: 'Type of fuel',
-  //   type: 'text'
-  // },
-  // { 
-  //   id: 'carColorCode',
-  //   label: 'Color code',
-  //   placeholder: 'Color code',
-  //   type: 'text'
-  // },
-  // { 
-  //   id: 'repairHistory',
-  //   label: 'Repair history',
-  //   placeholder: 'Repair history',
-  //   type: 'text'
-  // },
-  // { 
-  //   id: 'maintenanceHistory',
-  //   label: 'Maintenance history',
-  //   placeholder: 'Maintenance history',
-  //   type: 'text'
-  // }
+  }
 ];
 
 
@@ -159,9 +174,8 @@ const RepairSection = ({register}) => {
 
   const handleAddRepair = () => {
     const newRepair = {
-      repairType: '',
-      parts: '',
-      comment: '',
+      repairDescription: '',
+      replacementParts: '',
     };
     setRepairs([...repairs, newRepair]);
   };
@@ -184,10 +198,10 @@ const RepairSection = ({register}) => {
       {repairs.length > 0 && (
         <Stack direction="row">
           <Flex flex={1}>
-            <FormLabel direction="column" mr={2}>Repair type:</FormLabel>
+            <FormLabel direction="column" mr={2}>Repair description:</FormLabel>
           </Flex>
           <Flex flex={1}>
-            <FormLabel direction="column" mr={2}>Parts:</FormLabel>
+            <FormLabel direction="column" mr={2}>Replacement parts:</FormLabel>
           </Flex>
         </Stack>
       )}
@@ -196,18 +210,18 @@ const RepairSection = ({register}) => {
         <Flex key={index} mb={2}>
           <Flex direction='column' m={1}>
             <Input
-              placeholder="repair type"
-              name={`repairs[${index}].repairType`}
-              onChange={(e) => handleInputChange(index, 'repairType', e.target.value)}
-              {...register(`repairs[${index}].repairType`)}
+              placeholder="Repair description"
+              name={`repairs[${index}].repairDescription`}
+              onChange={(e) => handleInputChange(index, 'repairDescription', e.target.value)}
+              {...register(`repairs[${index}].repairDescription`)}
             />
           </Flex>
           <Flex direction='column' m={1}>
             <Input
-              placeholder="parts"
-              name={`repairs[${index}].parts`}
-              onChange={(e) => handleInputChange(index, 'parts', e.target.value)}
-              {...register(`repairs[${index}].parts`)}
+              placeholder="replacementParts"
+              name={`repairs[${index}].replacementParts`}
+              onChange={(e) => handleInputChange(index, 'replacementParts', e.target.value)}
+              {...register(`repairs[${index}].replacementParts`)}
             />
           </Flex>
         </Flex>
@@ -216,64 +230,60 @@ const RepairSection = ({register}) => {
   );
 };
 
-const MantenanceSection = ({register}) => {
-  const [mantenances, setMantenances] = useState([]);
+const MaintenanceSection = ({register}) => {
+  const [maintenance, setMaintenance] = useState([]);
 
-  const handleAddRepair = () => {
-    const newMantenance = {
-      mantenanceType: '',
-      parts: '',
-      comment: '',
+  const handleAddMaintenance = () => {
+    const newMaintenance = {
+      maintenanceDescription: '',
+      replacementParts: ''
     };
-    setMantenances([...mantenances, newMantenance]);
+    setMaintenance([...maintenance, newMaintenance]);
   };
 
   const handleInputChange = (index, field, value) => {
-    const updatedMantenances = [...mantenances];
-    updatedMantenances[index][field] = value;
-    setRepairs(updatedMantenances);
+    const updatedMaintenance = [...maintenance];
+    updatedMaintenance[index][field] = value;
+    setMaintenance(updatedMaintenance);
   };
 
   return (
     <div>
       <Flex>
-        <FormLabel>Add Mantenance:</FormLabel>
-        <Button size="sm" onClick={handleAddRepair}>
-          add
+        <FormLabel>Add maintenance:</FormLabel>
+        <Button size="sm" onClick={handleAddMaintenance}>
+          +
         </Button>
       </Flex>
 
       
-      {mantenances.length > 0 && (
+      {maintenance.length > 0 && (
         <Stack direction="row">
           <Flex flex={1}>
-            <FormLabel direction="column" mr={2}>Mantenance type:</FormLabel>
+            <FormLabel direction="column" mr={2}>Maintenance description:</FormLabel>
           </Flex>
           <Flex flex={1}>
-            <FormLabel direction="column" mr={2}>Parts:</FormLabel>
+            <FormLabel direction="column" mr={2}>Replacement parts:</FormLabel>
           </Flex>
         </Stack>
       )}
 
-      {mantenances.map((mantenance, index) => (
+      {maintenance.map((maintenance, index) => (
         <Flex key={index} mb={2}>
           <Flex direction='column' m={1}>
             <Input
-              placeholder="Mantenance type"
-              name={`mantenance[${index}].mantenanceType`}
-              value={mantenance.repairType}
-              onChange={(e) => handleInputChange(index, 'mantenanceType', e.target.value)}
-              ref={register(`mantenance[${index}].mantenanceType`)}
+              placeholder="Maintenance description"
+              name={`maintenance[${index}].maintenanceDescription`}
+              onChange={(e) => handleInputChange(index, 'maintenanceDescription', e.target.value)}
+              {...register(`maintenance[${index}].maintenanceDescription`)}
             />
           </Flex>
-
           <Flex direction='column' m={1}>
             <Input
-              placeholder="parts"
-              value={mantenance.parts}
-              name={`mantenance[${index}].parts`}
-              onChange={(e) => handleInputChange(index, 'parts', e.target.value)}
-              ref={register(`mantenance[${index}].parts`)}
+              placeholder="replacementParts"
+              name={`maintenance[${index}].replacementParts`}
+              onChange={(e) => handleInputChange(index, 'replacementParts', e.target.value)}
+              {...register(`maintenance[${index}].replacementParts`)}
             />
           </Flex>
         </Flex>

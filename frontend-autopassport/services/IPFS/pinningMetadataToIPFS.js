@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
+export const pinningMetadataToIPFS = async (tokenMetadata, PINATA_JWT) => {
   let metadataCID;
-  const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
 
   const data = JSON.stringify({
     "pinataOptions": {
@@ -15,24 +14,7 @@ export const pinningMetadataToIPFS = async (formValues, PINATA_JWT) => {
         "customKey2": "customValue2"
       }
     },
-    "pinataContent": {
-      "name": `${brand} ${model}`,
-      "description": "Your AutoPassport NFT",
-      "image": image,
-      "attributes": {
-        "brand": brand,
-        "model": model,
-        "vin": vehicleIdentificationNumber,
-        "mileage": 0,
-        "color_code": colorCode,
-        "date_of_manufacture": dateOfManufacture,
-        "warranty_expiration_date": warrantyExpirationDate,
-        "fuel_type": typeOfFuel,
-        "repair_history": [],
-        "maintenance_history": [],
-        "last_update": last_update
-      }
-    }
+    "pinataContent": tokenMetadata
   });
   try {
     const config = {

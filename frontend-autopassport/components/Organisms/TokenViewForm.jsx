@@ -19,11 +19,16 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/router";
 import axios from 'axios';
+import getConfig from 'next/config'
+import { handleViewToken } from '@components/services/smart-contract/handleViewToken';
 
 export default function TokenViewForm(){
-  const  [tokenId, setTokenId] = useState("");
-  const  [tokenMetadata, setTokenMetadata] = useState();
+  const  [vin, setVin] = useState("");
+  // const  [tokenMetadata, setTokenMetadata] = useState();
   const router = useRouter();
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS;
+  const contractABI = require("../../utils/AutoPassport.json").abi;
   const stackBackgroundColor = useColorModeValue('white', 'gray.700')
   return (
     <Flex
@@ -41,7 +46,7 @@ export default function TokenViewForm(){
         p={6}
         my={12}>
         <Heading lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
-          Enter token ID
+          Enter a VIN
         </Heading>
         <Text
           fontSize={{ base: 'sm', sm: 'md' }}
@@ -50,11 +55,11 @@ export default function TokenViewForm(){
         </Text>
         <FormControl id="tokenId">
           <Input
-            placeholder="Token ID"
+            placeholder="VIN"
             _placeholder={{ color: 'gray.500' }}
-            type="number"
-            value={tokenId}
-            onChange={(e) => setTokenId(e.target.value)}
+            type="string"
+            value={vin}
+            onChange={(e) => setVin(e.target.value)}
           />
         </FormControl>
         <Stack spacing={6}>
@@ -66,14 +71,20 @@ export default function TokenViewForm(){
               bg: 'pink.300',
             }}
             onClick={async() => {
-                setTokenMetadata(await getTokenMetadata(tokenId));
+                try {
+                  const data = await handleViewToken(vin, contractAddress, contractABI);
+                  console.log(data);
+                } catch (error) {
+                  const { message } = error;
+                  console.log(message);
+                }
             }}
             >
             Request AutoPassport
           </Button>
         </Stack>
       </Stack>
-      {tokenMetadata && (
+      {/* {tokenMetadata && (
         <TableContainer 
         bg={stackBackgroundColor} 
         rounded={'xl'}
@@ -102,15 +113,15 @@ export default function TokenViewForm(){
           ))}
         </Table>
       </TableContainer>
-      )}
+      )} */}
     </Flex>
   );
 }
 
-async function getTokenMetadata(tokenId) {
-    const response = await axios.get(`api/tokens/${tokenId}`)
-    response.data.tokenId = tokenId;
-    console.log(response.data);
-    return response.data;
-}
+// async function getTokenMetadata(tokenId) {
+//     const response = await axios.get(`api/tokens/${tokenId}`)
+//     response.data.tokenId = tokenId;
+//     console.log(response.data);
+//     return response.data;
+// }
 
