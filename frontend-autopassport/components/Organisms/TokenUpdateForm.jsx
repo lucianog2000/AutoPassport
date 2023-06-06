@@ -12,13 +12,13 @@ import {
 import getConfig from 'next/config'
 import { useRouter } from 'next/router';
 import { useForm } from 'react-hook-form';  
-import SelectInput from '../Molecules/SelectInput';
-import { getAllFuels } from '../../services/firebase/fuelService';
 import { handleViewToken } from '../../services/smart-contract/handleViewToken';
 import axios from 'axios';
 import { pinningMetadataToIPFS } from '@components/services/IPFS/pinningMetadataToIPFS';
 import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
 import { handleUpdateToken } from '@components/services/smart-contract/handleUpdateToken';
+import SelectInput from '../Molecules/SelectInput';
+import { getAllFuels } from '../../services/firebase/fuelService';
 
 export default function TokenUpdateForm(){
   const router = useRouter();
@@ -26,8 +26,8 @@ export default function TokenUpdateForm(){
   const contractAddress = env.SMART_CONTRACT_ADDRESS;
   const PINATA_JWT = env.PINATA_JWT;
   const contractABI = require("../../utils/AutoPassport.json").abi;
-  // const [fuelTypes, setFuelTypes] = useState([]);
   const { handleSubmit, register, errors } = useForm();
+  // const [fuelTypes, setFuelTypes] = useState([]);
 
   // useEffect(() => {
   //   const fetchFuelTypes = async () => {
@@ -43,38 +43,48 @@ export default function TokenUpdateForm(){
   // }, []);
 
   const onSubmit = async (formData) => {
+    let newRepair;
+    let newMaintenance;
+    const getJsonOf = (repairOrMaintenance) => {
+      const { description, replacementParts } = repairOrMaintenance;
+      return {
+        date: new Date().toISOString().split("T")[0],
+        description: description,
+        replacementParts: replacementParts
+      };
+    };
     try {
       // obtenemos los metadatos del auto
       const tokenData = await handleViewToken(vin, contractAddress, contractABI);
-      const oldCID = tokenData.uri.split("ipfs/")[1];
-      const metadata = await axios.get(tokenData.uri)
+      const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
+      const ipfsResponse = await axios.get(tokenData.uri)
+      const newMetadata = ipfsResponse.data
       // actualizamos los metadatos del auto
-      metadata.data.attributes.last_update = new Date().toISOString().split("T")[0];
-      metadata.data.attributes.mileage = parseInt(formData.mileage);
-      if (formData.maintenance) {
-        metadata.data.attributes.maintenance_history = [{
-          "date": new Date().toISOString().split("T")[0],
-          "description": formData.maintenance[0].maintenanceDescription,
-          "replacementParts": formData.maintenance[0].replacementParts
-        }]
-      }
+      newMetadata.attributes.last_update = new Date().toISOString().split("T")[0];
+      //parseInt temporal ya se el form esta levantando el dato como string
+      newMetadata.attributes.mileage = parseInt(formData.mileage);
       if (formData.repairs) {
-        metadata.data.attributes.repair_history = [{
-          "date": new Date().toISOString().split("T")[0],
-          "description": formData.repairs[0].repairDescription,
-          "replacementParts": formData.repairs[0].replacementParts
-        }]
+        const repair = formData.repairs[0];
+        newRepair = getJsonOf(repair);
+        newMetadata.attributes.repair_history.push(newRepair);
+      }
+      if (formData.maintenance) {
+        const maintenance = formData.maintenance[0];
+        newMaintenance = getJsonOf(maintenance);
+        newMetadata.attributes.maintenance_history.push(newMaintenance);
       }
       // subirla a pinata y obtener nuevo CID
-      const metadataCID = await pinningMetadataToIPFS(metadata.data, PINATA_JWT);
-      if (metadataCID) {
-        metadata.data.attributes['newURI'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
+      const newMetadataCID = await pinningMetadataToIPFS(newMetadata, PINATA_JWT);
+      if (newMetadataCID) {
+        newMetadata.attributes.newURI = 'https://gateway.pinata.cloud/ipfs/'+ newMetadataCID;
+        newMetadata.attributes.newRepair = newRepair;
+        newMetadata.attributes.newMaintenance = newMaintenance;
       }
       // actualizar el token
-      await handleUpdateToken(metadata.data.attributes, contractAddress, contractABI)
+      await handleUpdateToken(newMetadata.attributes, contractAddress, contractABI)
       // eliminar la metadata vieja de pinata
-      if (oldCID) {
-        unpinningFileToIPFS(oldCID, PINATA_JWT);
+      if (oldMetadataCID) {
+        unpinningFileToIPFS(oldMetadataCID, PINATA_JWT);
       }
     } catch (error) {
       const { message } = error;
@@ -174,10 +184,11 @@ const RepairSection = ({register}) => {
 
   const handleAddRepair = () => {
     const newRepair = {
-      repairDescription: '',
+      description: '',
       replacementParts: '',
     };
     setRepairs([...repairs, newRepair]);
+    alert("Por el momento solo podemos procesar una sola repacación por update")
   };
 
   const handleInputChange = (index, field, value) => {
@@ -211,9 +222,9 @@ const RepairSection = ({register}) => {
           <Flex direction='column' m={1}>
             <Input
               placeholder="Repair description"
-              name={`repairs[${index}].repairDescription`}
-              onChange={(e) => handleInputChange(index, 'repairDescription', e.target.value)}
-              {...register(`repairs[${index}].repairDescription`)}
+              name={`repairs[${index}].description`}
+              onChange={(e) => handleInputChange(index, 'description', e.target.value)}
+              {...register(`repairs[${index}].description`)}
             />
           </Flex>
           <Flex direction='column' m={1}>
@@ -235,10 +246,11 @@ const MaintenanceSection = ({register}) => {
 
   const handleAddMaintenance = () => {
     const newMaintenance = {
-      maintenanceDescription: '',
+      description: '',
       replacementParts: ''
     };
     setMaintenance([...maintenance, newMaintenance]);
+    alert("Por el momento solo podemos procesar un solo mantenimiento por update")
   };
 
   const handleInputChange = (index, field, value) => {
@@ -273,9 +285,9 @@ const MaintenanceSection = ({register}) => {
           <Flex direction='column' m={1}>
             <Input
               placeholder="Maintenance description"
-              name={`maintenance[${index}].maintenanceDescription`}
-              onChange={(e) => handleInputChange(index, 'maintenanceDescription', e.target.value)}
-              {...register(`maintenance[${index}].maintenanceDescription`)}
+              name={`maintenance[${index}].description`}
+              onChange={(e) => handleInputChange(index, 'description', e.target.value)}
+              {...register(`maintenance[${index}].description`)}
             />
           </Flex>
           <Flex direction='column' m={1}>
