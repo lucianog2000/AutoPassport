@@ -45,12 +45,13 @@ export default function TokenUpdateForm(){
   const onSubmit = async (formData) => {
     let newRepair;
     let newMaintenance;
-    const getJsonOf = (repairOrMaintenance) => {
+    const getJson = (repairOrMaintenance, mileage) => {
       const { description, replacementParts } = repairOrMaintenance;
       return {
         date: new Date().toISOString().split("T")[0],
         description: description,
-        replacementParts: replacementParts
+        replacementParts: replacementParts,
+        mileageAtTheMoment: mileage
       };
     };
     try {
@@ -65,12 +66,12 @@ export default function TokenUpdateForm(){
       newMetadata.attributes.mileage = parseInt(formData.mileage);
       if (formData.repairs) {
         const repair = formData.repairs[0];
-        newRepair = getJsonOf(repair);
+        newRepair = getJson(repair, newMetadata.attributes.mileage);
         newMetadata.attributes.repair_history.push(newRepair);
       }
       if (formData.maintenance) {
         const maintenance = formData.maintenance[0];
-        newMaintenance = getJsonOf(maintenance);
+        newMaintenance = getJson(maintenance, newMetadata.attributes.mileage);
         newMetadata.attributes.maintenance_history.push(newMaintenance);
       }
       // subirla a pinata y obtener nuevo CID
