@@ -21,6 +21,7 @@ import {
   ChevronRightIcon,
 } from '@chakra-ui/icons';
 import ConnectWalletButton from '../Molecules/ConnectWalletButton';
+import AccountActionButton from '../Molecules/AccountActionButton';
 
 export default function Navbar() {
   const { isOpen, onToggle } = useDisclosure();
@@ -53,6 +54,27 @@ export default function Navbar() {
             <DesktopNav/>
           </Flex>
         </Flex>
+
+
+        <Stack
+          flex={{ base: 1, md: 0 }}
+          justify={'flex-end'}
+          direction={'row'}
+          spacing={6}>
+          <AccountActionButton href='/sign-up'>
+            Sign Up
+          </AccountActionButton>
+        </Stack>
+        
+        <Stack
+          flex={{ base: 1, md: 0 }}
+          justify={'flex-end'}
+          direction={'row'}
+          spacing={6}>
+          <AccountActionButton href='/login'>
+            Log In
+          </AccountActionButton>
+        </Stack>
 
         <Stack
           flex={{ base: 1, md: 0 }}
