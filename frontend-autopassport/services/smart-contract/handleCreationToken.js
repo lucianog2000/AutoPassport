@@ -1,8 +1,8 @@
 import { createAutoPassport } from "./createAutoPassport";
 import { getContract } from "./getContract";
 
-export async function handleTokenCreation(formValues, contractAddress, contractABI) {
-  //obtenemos una instacia del contrato
+export async function handleCreationToken(formValues, contractAddress, contractABI) {
+  //obtenemos una instancia del contrato
   const contract = getContract(contractAddress, contractABI);
 
   //creamos el token
