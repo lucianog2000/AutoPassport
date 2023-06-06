@@ -11,8 +11,8 @@ export const unpinningFileToIPFS = async (CID, PINATA_JWT) => {
       };
       
     const res = await axios(config);
-    console.log('IPFS nft image unpinned succesfully');
+    console.log('IPFS file unpinned succesfully');
   } catch (error) {
-    console.log('Error unpinning IPFS nft image: ', error);
+    console.log('Error unpinning IPFS file: ', error);
   }
 }

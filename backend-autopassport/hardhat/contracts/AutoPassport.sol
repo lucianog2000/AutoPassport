@@ -21,9 +21,7 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         uint256 indexed tokenId,
         string vin
     );
-    event RepairAdded(string indexed vin, string repair_history);
-    event MaintenanceAdded(string indexed vin, string maintenance_history);
-
+    
     struct Car {
         string brand;
         string model;
@@ -81,75 +79,31 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
 
         emit Creation(to, tokenId, vin);
     }
-    
-    /**
-     * Updates the current kilometers of the car. Transactions fails and burns gas if
-     * the new kilometer value is lower than the old one.
-     */
-    function updateMileage(string memory vin, uint mileage) public {
+
+    function updateAutoPassport(
+        string memory vin,
+        uint mileage,
+        string memory newRepair,
+        string memory newMaintenance,
+        string memory newURI,
+        string memory last_update
+    ) public {
         uint256 tokenId = _vinToTokenId[vin];
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
-        );
         Car storage carObject = _cars[tokenId];
         require(
             carObject.mileage < mileage,
             "New kilometers value must be greater than the current value"
         );
         carObject.mileage = mileage;
-    }
-    
-    /**
-     * Updates the maintenance of the car.
-     */
-    function addMaintenance(
-        string memory vin,
-        string memory newMaintenance
-    ) public {
-        uint256 tokenId = _vinToTokenId[vin];
-        require(
-            _msgSender() == ownerOf(tokenId),
-            "Only the owner can add maintenance"
-        );
-
-        Car storage carObject = _cars[tokenId];
-        require(
-            bytes(newMaintenance).length > 0,
-            "New maintenance string must not be empty"
-        );
-
-        // Append the newMaintenance variable to the maintenance array
-        carObject.maintenance_history.push(newMaintenance);
-
-        // Emit the MaintenanceAdded event
-        emit MaintenanceAdded(vin, newMaintenance);
-    }
-
-    /**
-     * Add Repairs of the car.
-     */
-    function addRepair(string memory vin, string memory newRepair) public {
-        uint256 tokenId = _vinToTokenId[vin];
-        require(
-            _msgSender() == ownerOf(tokenId),
-            "Only the owner can add a repair"
-        );
-
-        Car storage carObject = _cars[tokenId];
-
-        carObject.repair_history.push(newRepair);
-        require(
-            bytes(newRepair).length > 0,
-            "New repair string must not be empty"
-        );
-
-        emit RepairAdded(vin, newRepair);
-    }
-
-    function updateTokenURI(uint256 tokenId, string memory newURI) public {
+        if (bytes(newRepair).length > 0 && keccak256(bytes(newRepair)) != keccak256(bytes("undefined"))) {
+            carObject.repair_history.push(newRepair);
+        }
+        if (bytes(newMaintenance).length > 0 && keccak256(bytes(newMaintenance)) != keccak256(bytes("undefined"))) {
+            carObject.maintenance_history.push(newMaintenance);
+        }
         _setTokenURI(tokenId, newURI);
-    }
+        carObject.last_update = last_update;
+    }      
 
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
@@ -175,7 +129,8 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
             uint mileage,
             string[] memory repair_history,
             string[] memory maintenance_history,
-            string memory last_update
+            string memory last_update,
+            string memory uri
         )
     {
         Car storage carObject = _cars[tokenId];
@@ -190,6 +145,7 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         repair_history = carObject.repair_history;
         maintenance_history = carObject.maintenance_history;
         last_update = carObject.last_update;
+        uri = super.tokenURI(tokenId);
     }
 
     function getCarByVIN(
@@ -208,7 +164,8 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
             uint mileage,
             string[] memory repair_history,
             string[] memory maintenance_history,
-            string memory last_update
+            string memory last_update,
+            string memory uri
         )
     {
         tokenId = _vinToTokenId[vin];
@@ -223,6 +180,7 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         repair_history = carObject.repair_history;
         maintenance_history = carObject.maintenance_history;
         last_update = carObject.last_update;
+        uri = super.tokenURI(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
