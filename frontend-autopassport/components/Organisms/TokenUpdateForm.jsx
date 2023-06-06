@@ -188,7 +188,7 @@ const RepairSection = ({register}) => {
       replacementParts: '',
     };
     setRepairs([...repairs, newRepair]);
-    alert("Por el momento solo podemos procesar una sola repacación por update")
+    alert("Por el momento solo podemos procesar una sola reparación por update")
   };
 
   const handleInputChange = (index, field, value) => {
