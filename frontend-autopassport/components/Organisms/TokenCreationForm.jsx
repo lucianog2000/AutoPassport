@@ -45,13 +45,11 @@ export default function TokenCreationForm() {
 
     event.preventDefault();
     try {
-      //seteamos temporalmente la fecha de fabricacion ya que no se esta levantando el dato desde el form
-      //formValues.dateOfManufacture = new Date().toISOString().split('T')[0];
-      formValues.last_update = new Date().toISOString().split('T')[0];
       //obtenemos la cuenta de metamask conectada a nuestra app
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts"
       });
+      formValues.last_update = new Date().toISOString().split('T')[0];
       //seteamos la cuenta de metamask como walletAddress como string
       formValues.walletAddress = accounts[0]?.toString();
       //subimos la imagen a pinata y obtenemos el CID
