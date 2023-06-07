@@ -14,6 +14,12 @@ export async function handleViewToken(vin, contractAddress, contractABI) {
     return response;
   }
   catch (error) {
-    console.log(`Error handleViewToken: ${error}`);
+    console.log(`Error: ${error}`);
+    if (typeof error === 'string' && error.includes('Error: unknown account #0')) {
+      return new Error('Connect your wallet');
+    }
+    else {
+      return new Error(error);
+    }
   }
 }

@@ -57,9 +57,7 @@ export default function HeroSection() {
               onClick={() => router.push('/create-nft')}>
               Create AutoPassport
             </Button>
-            <Button variant={'link'} colorScheme={'gray'} size={'m'}>
-              How It Works
-            </Button>
+            <YouTubeVideo title='How It Works' />
           </Stack>
         </Stack>
       </Container>
@@ -79,3 +77,20 @@ const Arrow = createIcon({
     />
   ),
 });
+
+const YouTubeVideo = ({ title }) => {
+  const embedUrl = `https://www.youtube.com/embed/md8weeQ2b7o`;
+
+  return (
+    <Box maxW="560px" mx="auto" my={4}>
+      <Text mt={2} fontWeight="bold">{title}</Text>
+      <iframe
+        width="600"
+        height="400"
+        src={embedUrl}
+        title={title}
+        allowFullScreen
+      ></iframe>
+    </Box>
+  );
+};
