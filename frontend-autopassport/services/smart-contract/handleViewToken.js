@@ -3,12 +3,17 @@ import { getContract } from "./getContract";
 
 export async function handleViewToken(vin, contractAddress, contractABI) {
   //obtenemos una instancia del contrato
-  const contract = getContract(contractAddress, contractABI);
-  const response = await getCarByVIN(
-    contract,
-    vin
+  try {
+    const contract = getContract(contractAddress, contractABI);
+    console.log('contract and vin', contract, vin)
+    const response = await getCarByVIN(
+      contract,
+      vin
     );
-  console.log(`The token has been obtained successfully`);
-  return response;
-
+    console.log(`The token has been obtained successfully`);
+    return response;
+  }
+  catch (error) {
+    console.log(`Error handleViewToken: ${error}`);
+  }
 }

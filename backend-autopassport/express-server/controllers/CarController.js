@@ -1,4 +1,6 @@
 const { CARS } = require('../constants');
+const admin = require('../services/firebase');
+const db = admin.firestore();
 
 const CarController = {
   getAllCars: (req, res) => {
@@ -30,6 +32,47 @@ const CarController = {
     const newCar = req.body;
     console.log('Body', newCar);
     res.send('Car created successfully');
+  },
+
+  getCarFinesByVIN: async (req, res) => {
+    try {
+      const carVIN = req.params.vin;
+      const datosRef = db.collection('carFines');
+      const snapshot = await datosRef.where('vin', '==', carVIN).get();
+
+      if (snapshot.empty) {
+        return res.status(404).json({});
+      }
+      const datos = snapshot.docs.map((doc) => doc.data());
+      const datosString = datos.map((dato) => JSON.stringify(dato)).join(", ");
+      console.log('Datos:', datosString, typeof datosString);
+      res.send(datosString);
+    } catch (error) {
+      console.log('Error al obtener los datos:', error);
+      res.status(500).json({ error: 'Error al obtener los datos' });
+    }
+  },
+  addCarFineByVIN: async (req, res) => {
+
+    req.body = 'Aca va lo que envies en el body de postman'
+    randomBody = {
+      "id": 1,
+      "vin": req.params.vin,
+      "licensePlate": "ABC123",
+      "fineDate": "2021-01-01",
+      "fineAmount": 1000,
+      "fineDescription": randFineDescription(),
+      "fineStatus": "pending"
+    }
+    try {
+      const newCarFine = req.body;
+      const datosRef = db.collection('carFines');
+      const res = await datosRef.doc('carFines').set(newCarFine);
+      console.log('Added document with ID: ', res.id);
+    } catch (error) {
+      console.log('Error al obtener los datos:', error);
+      res.status(500).json({ error: 'Error al obtener los datos' });
+    }
   }
 };
 
