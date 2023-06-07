@@ -45,7 +45,7 @@ export default function TokenUpdateForm(){
   const onSubmit = async (formData) => {
     let newRepair;
     let newMaintenance;
-    const getJson = (repairOrMaintenance, mileage) => {
+    const getJsonFormatted = (repairOrMaintenance, mileage) => {
       const { description, replacementParts } = repairOrMaintenance;
       return {
         date: new Date().toISOString().split("T")[0],
@@ -59,21 +59,13 @@ export default function TokenUpdateForm(){
       const tokenData = await handleViewToken(vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
       const ipfsResponse = await axios.get(tokenData.uri)
-      const newMetadata = ipfsResponse.data
+      const newMetadata = ipfsResponse.data;
       // actualizamos los metadatos del auto
       newMetadata.attributes.last_update = new Date().toISOString().split("T")[0];
       //parseInt temporal ya se el form esta levantando el dato como string
       newMetadata.attributes.mileage = parseInt(formData.mileage);
-      if (formData.repairs) {
-        const repair = formData.repairs[0];
-        newRepair = getJson(repair, newMetadata.attributes.mileage);
-        newMetadata.attributes.repair_history.push(newRepair);
-      }
-      if (formData.maintenance) {
-        const maintenance = formData.maintenance[0];
-        newMaintenance = getJson(maintenance, newMetadata.attributes.mileage);
-        newMetadata.attributes.maintenance_history.push(newMaintenance);
-      }
+      setRepairData(newMetadata);
+      setMaintenanceData(newMetadata);
       // subirla a pinata y obtener nuevo CID
       const newMetadataCID = await pinningMetadataToIPFS(newMetadata, PINATA_JWT);
       if (newMetadataCID) {
@@ -82,7 +74,7 @@ export default function TokenUpdateForm(){
         newMetadata.attributes.newMaintenance = newMaintenance;
       }
       // actualizar el token
-      await handleUpdateToken(newMetadata.attributes, contractAddress, contractABI)
+      await handleUpdateToken(newMetadata.attributes, contractAddress, contractABI);
       // eliminar la metadata vieja de pinata
       if (oldMetadataCID) {
         unpinningFileToIPFS(oldMetadataCID, PINATA_JWT);
@@ -90,6 +82,22 @@ export default function TokenUpdateForm(){
     } catch (error) {
       const { message } = error;
       console.log(message);
+    }
+
+    function setMaintenanceData(newMetadata) {
+      if (formData.maintenance) {
+        const maintenance = formData.maintenance[0];
+        newMaintenance = getJsonFormatted(maintenance, newMetadata.attributes.mileage);
+        newMetadata.attributes.maintenance_history.push(newMaintenance);
+      }
+    }
+
+    function setRepairData(newMetadata) {
+      if (formData.repairs) {
+        const repair = formData.repairs[0];
+        newRepair = getJsonFormatted(repair, newMetadata.attributes.mileage);
+        newMetadata.attributes.repair_history.push(newRepair);
+      }
     }
   }
     return (
