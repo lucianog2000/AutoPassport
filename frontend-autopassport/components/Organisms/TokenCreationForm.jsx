@@ -61,7 +61,7 @@ export default function TokenCreationForm() {
         formValues['image'] = 'https://gateway.pinata.cloud/ipfs/' + imageCID;
       }
       //subimos a pinata la metadata/uri que va a corresponder al nft y obtenemos el CID
-      const { brand, model, image, vehicleIdentificationNumber, colorCode, typeOfFuel, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
+      const { brand, model, image, vehicleIdentificationNumber, colorCode, fuel_type, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
       const tokenMetadata = {
         "name": `${brand} ${model}`,
         "description": "Your AutoPassport NFT",
@@ -74,7 +74,7 @@ export default function TokenCreationForm() {
           "color_code": colorCode,
           "date_of_manufacture": dateOfManufacture,
           "warranty_expiration_date": warrantyExpirationDate,
-          "fuel_type": typeOfFuel,
+          "fuel_type": fuel_type,
           "repair_history": [],
           "maintenance_history": [],
           "last_update": last_update
