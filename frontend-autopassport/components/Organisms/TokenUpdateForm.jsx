@@ -56,7 +56,7 @@ export default function TokenUpdateForm(){
     };
     try {
       // obtenemos los metadatos del auto
-      const tokenData = await handleViewToken(vin, contractAddress, contractABI);
+      const tokenData = await handleViewToken(formData.vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
       const ipfsResponse = await axios.get(tokenData.uri)
       const newMetadata = ipfsResponse.data;

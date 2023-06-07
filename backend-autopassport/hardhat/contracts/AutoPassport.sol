@@ -39,6 +39,8 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
     Counters.Counter private _tokenIdCounter;
     mapping (uint256 => Car) private _cars;
     mapping (string => uint256) private _vinToTokenId;
+    mapping (string => bool) private _isVinUsed;
+    mapping (uint256 => bool) private _isTokenIdUsed;
 
     constructor() ERC721("Autopassport", "Pass") {}
 
@@ -57,9 +59,9 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         string memory fuel_type, 
         string memory last_update, 
         string memory uriIpfsUrl) public onlyOwner {
-        require(_vinToTokenId[vin] == 0, "Car with this VIN already exists");
-        address owner = to;
-        uint256 tokenId = _tokenIdCounter.current();
+        require(_isVinUsed[vin] == false, "Car with this VIN already exists");
+        uint256 tokenId = _tokenIdCounter.current() + 1;
+        require(_isTokenIdUsed[tokenId] == false, "Car with this tokenId already exists");
         _cars[tokenId] = Car(
             brand, 
             model, 
@@ -74,9 +76,10 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
             last_update);
         _vinToTokenId[vin] = tokenId;
         _tokenIdCounter.increment();
-        _safeMint(owner, tokenId);
+        _safeMint(to, tokenId);
         _setTokenURI(tokenId, uriIpfsUrl);
-
+        _isVinUsed[vin] = true;
+        _isTokenIdUsed[tokenId] = true;
         emit Creation(to, tokenId, vin);
     }
 
@@ -88,11 +91,12 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         string memory newURI,
         string memory last_update
     ) public {
+        require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         uint256 tokenId = _vinToTokenId[vin];
         Car storage carObject = _cars[tokenId];
         require(
             carObject.mileage < mileage,
-            "New kilometers value must be greater than the current value"
+            "New mileage value must be greater than the current value"
         );
         carObject.mileage = mileage;
         if (bytes(newRepair).length > 0 && keccak256(bytes(newRepair)) != keccak256(bytes("undefined"))) {
@@ -119,68 +123,23 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
         public
         view
         returns (
-            string memory brand,
-            string memory model,
-            string memory vin,
-            string memory color_code,
-            string memory date_of_manufacture,
-            string memory warranty_expiration_date,
-            string memory fuel_type,
-            uint mileage,
-            string[] memory repair_history,
-            string[] memory maintenance_history,
-            string memory last_update,
-            string memory uri
+            Car memory objCar
         )
-    {
+    {   
+        require(_isTokenIdUsed[tokenId] == true, "Car with this tokenId does not exist");
         Car storage carObject = _cars[tokenId];
-        brand = carObject.brand;
-        model = carObject.model;
-        vin = carObject.vin;
-        color_code = carObject.color_code;
-        date_of_manufacture = carObject.date_of_manufacture;
-        warranty_expiration_date = carObject.warranty_expiration_date;
-        fuel_type = carObject.fuel_type;
-        mileage = carObject.mileage;
-        repair_history = carObject.repair_history;
-        maintenance_history = carObject.maintenance_history;
-        last_update = carObject.last_update;
-        uri = super.tokenURI(tokenId);
-    }
-
-    function getCarByVIN(
-        string memory vin
-    )
-        public
-        view
-        returns (
-            uint256 tokenId,
-            string memory brand,
-            string memory model,
-            string memory color_code,
-            string memory date_of_manufacture,
-            string memory warranty_expiration_date,
-            string memory fuel_type,
-            uint mileage,
-            string[] memory repair_history,
-            string[] memory maintenance_history,
-            string memory last_update,
-            string memory uri
-        )
-    {
-        tokenId = _vinToTokenId[vin];
-        Car storage carObject = _cars[tokenId];
-        brand = carObject.brand;
-        model = carObject.model;
-        color_code = carObject.color_code;
-        date_of_manufacture = carObject.date_of_manufacture;
-        warranty_expiration_date = carObject.warranty_expiration_date;
-        fuel_type = carObject.fuel_type;
-        mileage = carObject.mileage;
-        repair_history = carObject.repair_history;
-        maintenance_history = carObject.maintenance_history;
-        last_update = carObject.last_update;
-        uri = super.tokenURI(tokenId);
+        objCar = Car(
+            carObject.brand, 
+            carObject.model, 
+            carObject.vin,
+            carObject.color_code, 
+            carObject.date_of_manufacture,
+            carObject.warranty_expiration_date,
+            carObject.fuel_type,
+            carObject.mileage,
+            carObject.repair_history,
+            carObject.maintenance_history,
+            carObject.last_update);
     }
 
     function getObjCarByVIN(
@@ -194,6 +153,7 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
             string memory uri
         )
     {
+        require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         tokenId = _vinToTokenId[vin];
         Car storage carObject = _cars[tokenId];
         objCar = Car(
