@@ -6,14 +6,15 @@
     "api-dev": "node express-server/index.js"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.6.1",
     "@chainlink/env-enc": "^1.0.5",
     "@ethersproject/providers": "^5.7.2",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
-    "@openzeppelin/hardhat-upgrades": "^1.27.0",
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/hardhat-upgrades": "^1.27.0",
     "axios": "^1.4.0",
     "body-parser": "^1.20.2",
     "chai": "^4.2.0",
