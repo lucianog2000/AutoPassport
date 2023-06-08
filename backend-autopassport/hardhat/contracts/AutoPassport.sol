@@ -6,14 +6,24 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
+import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
+// import "@openzeppelin/contracts/utils/Strings.sol";
+// import "@openzeppelin/contracts/utils/Base64.sol";
 
 /**
  * Autopassport car tokenizer 
  */
 
-contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
+contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
+    using Chainlink for Chainlink.Request;
+    //Chainlink Variablles, returned in a single oracle response
+
+    bytes public data;
+    string public image_url;
+
+    bytes32 private jobId;
+    uint256 private fee;
     using Counters for Counters.Counter;
 
     event Creation(
@@ -42,7 +52,13 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
     mapping (string => bool) private _isVinUsed;
     mapping (uint256 => bool) private _isTokenIdUsed;
 
-    constructor() ERC721("Autopassport", "Pass") {}
+    constructor() ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender){
+        setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
+        setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
+        jobId = "7d80a6386ef543a3abb52817f6707e3b";
+        fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
+    }
+    }
 
     /**
      * Creates a track record of a new car. 
