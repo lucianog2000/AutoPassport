@@ -1,4 +1,9 @@
 import {
+  Accordion,
+  AccordionItem,
+  AccordionButton,
+  AccordionPanel,
+  AccordionIcon,
   Button,
   FormControl,
   Flex,
@@ -18,7 +23,6 @@ import { useRouter } from "next/router";
 import axios from 'axios';
 import getConfig from 'next/config'
 import { handleViewToken } from '@components/services/smart-contract/handleViewToken';
-import { tokenMetadata } from '@components/mocks/tokenMetadata';
 import { useForm } from "react-hook-form";
 import TokenUpdate from '@components/pages/update-nft-metadata';
 
@@ -41,20 +45,16 @@ export default function TokenViewForm(){
   const onSubmit = async (formData) => {
 
     setTokenMetadata(null);
-    const {vin} = formData;
 
     // TODO: Manejar error ya que handleViewToken devuelve siempre lo mismo, por mas que el token no exista
     // TODO: Manejar error de que no se encuentre el token
     // Revisar que no este harcodeado en el backend
     try {
-      const data = await handleViewToken(vin, contractAddress, contractABI);
+      const data = await handleViewToken(formData.vin, contractAddress, contractABI);
       const { uri, tokenId } = data;
       const parseTokenId = parseHexToInt(tokenId);
-      fetch(uri)
-      .then(response => response.json())
-      .then(data => {
-        setTokenMetadata({tokenURI: uri, metadata: data, tokenId: parseTokenId});
-      });
+      const ipfs = await axios.get(uri);
+      setTokenMetadata({tokenURI: uri, metadata: ipfs.data, tokenId: parseTokenId});
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -115,11 +115,81 @@ export default function TokenViewForm(){
 
 
 const TokenInfo = ({ tokenMetadata }) => {
-
   const {tokenId, metadata } = tokenMetadata
   const { name, image, attributes } = metadata;
 
-  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/0xab87df5616a93b29f90d197b0a9ebe6c4fb7c6d4/${tokenId}`;
+  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${'0x3FbE7826e1931373f355C86dd97873E3670633C0'}/${tokenId}`;
+  
+  const RenderDataSection = (heading, value) => (
+    <Text py="1">
+      <Heading 
+      fontSize={{ base: 'sm', sm: 'md' }}
+      color={useColorModeValue('gray.700', 'gray.400')}
+      >
+      {heading}:
+      </Heading> 
+      {value}
+    </Text>
+  );
+  
+  const renderHistory = (historyTitle ,arrayHistory) => {
+    if (arrayHistory.length === 0) return null;
+    return (
+      <>
+        <Heading
+          fontSize={{ base: 'sm', sm: 'md' }}
+          color={'gray.700'}
+        >
+          {historyTitle}:
+        </Heading>
+        <Accordion allowToggle>
+          {arrayHistory.map((item, index) => (
+            <AccordionItem key={index}>
+              <h2>
+                <AccordionButton>
+                  <Box as="span" flex='1' textAlign='left'>
+                    {item.description}
+                  </Box>
+                  <AccordionIcon />
+                </AccordionButton>
+              </h2>
+              <AccordionPanel pb={4}>
+                <Text py="1">
+                  <Heading
+                    fontSize={{ base: 'sm', sm: 'md' }}
+                    color={'gray.700'}
+                  >
+                    Date:
+                  </Heading>
+                  {item.date}
+                </Text>
+                <Text py="1">
+                  <Heading
+                    fontSize={{ base: 'sm', sm: 'md' }}
+                    color={'gray.700'}
+                  >
+                    Replacement parts:
+                  </Heading>
+                  {item.replacementParts}
+                </Text>
+                <Text py="1">
+                  <Heading
+                    fontSize={{ base: 'sm', sm: 'md' }}
+                    color={'gray.700'}
+                  >
+                    Mileage at the moment:
+                  </Heading>
+                  {item.mileageAtTheMoment}
+                </Text>
+              </AccordionPanel>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </>
+    );
+  };
+
+
   return (
       <Card
         direction={{ base: 'column', sm: 'row' }}
@@ -127,32 +197,39 @@ const TokenInfo = ({ tokenMetadata }) => {
         variant='outline'
         p={5}
         m={10}
+        bg={useColorModeValue('white', 'gray.700')}
+        rounded={'xl'}
+        boxShadow={'lg'}
+        my={12}
+        border={0}
       >
         <Image
           objectFit='cover'
-          maxW={{ base: '100%', sm: '60%' }}
+          maxW={760}
+          maxH={520}
           src={image}
           alt='Token image'
         />
         <Stack>
           <CardBody p={5}>
-            <Heading size='md'>{name}</Heading>
-            <Text py={1}>
-              <Heading size='sm'>Date of manufacture:</Heading> {attributes.date_of_manufacture} 
-            </Text>
-            <Text py='1'>
-              <Heading size='sm'>Milage:</Heading> {attributes.mileage} 
-            </Text>
-            <Text py='1'>
-              <Heading size='sm'>Warranty expiration:</Heading> {attributes.warranty_expiration_date} 
-            </Text>
-            <Text py='1'>
-              <Heading size='sm'>Color:</Heading> {attributes.color_code} <Input type='color' readOnly value={'#E4E7EB'} ></Input>
-            </Text>
+            <Heading 
+            size='lg'
+            color={useColorModeValue('gray.800', 'gray.400')}
+            >
+              {name}
+            </Heading>
+            {RenderDataSection('Milage', attributes.mileage)}
+            {RenderDataSection('Color code', attributes.color_code)}
+            {RenderDataSection('Date of manufacture', attributes.date_of_manufacture)}
+            {RenderDataSection('Warranty expiration', attributes.warranty_expiration_date)}
+            {RenderDataSection('Fuel type', attributes.fuel_type)}
+            {renderHistory('Repair history', attributes.repair_history)}
+            {renderHistory('Maintenance history', attributes.maintenance_history)}
+            {RenderDataSection('Last update', attributes.last_update)}
           </CardBody>
 
           <CardFooter>
-            <Button as={'a'} variant='solid' colorScheme='blue' mx={2} href={openSeaLink} target="_blank">
+            <Button as={'a'} variant='solid' colorScheme='blue' href={openSeaLink} target="_blank">
               See in OpenSea
             </Button>
             <Button as={'a'} variant='solid' colorScheme='pink' mx={2} href={'/update-nft-metadata'}>
@@ -163,12 +240,4 @@ const TokenInfo = ({ tokenMetadata }) => {
       </Card>
   )
 }
-
-
-// async function getTokenMetadata(tokenId) {
-//     const response = await axios.get(`api/tokens/${tokenId}`)
-//     response.data.tokenId = tokenId;
-//     console.log(response.data);
-//     return response.data;
-// }
 

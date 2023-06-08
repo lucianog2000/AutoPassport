@@ -61,13 +61,13 @@ const CarController = {
       "licensePlate": "ABC123",
       "fineDate": "2021-01-01",
       "fineAmount": 1000,
-      "fineDescription": randFineDescription(),
-      "fineStatus": "pending"
+      "fineDescription": "Speeding",
+      "fineStatus": "pending",
+      "paid": false
     }
     try {
-      const newCarFine = req.body;
-      const datosRef = db.collection('carFines');
-      const res = await datosRef.doc('carFines').set(newCarFine);
+      const newCarFine = randomBody;
+      const res = await db.collection('carFines').add(newCarFine);
       console.log('Added document with ID: ', res.id);
     } catch (error) {
       console.log('Error al obtener los datos:', error);
