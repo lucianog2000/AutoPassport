@@ -65,6 +65,7 @@ const CarController = {
       "fineStatus": "pending",
       "paid": false
     }
+    console.log('Body', JSON.stringify(randomBody).replace(/"/g, '\\"'));
     try {
       const newCarFine = randomBody;
       const res = await db.collection('carFines').add(newCarFine);

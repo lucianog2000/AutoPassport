@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
@@ -15,11 +14,11 @@ import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
  * Autopassport car tokenizer 
  */
 
-contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
+contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable, ERC721URIStorage  {
     using Chainlink for Chainlink.Request;
     //Chainlink Variablles, returned in a single oracle response
 
-    bytes public data;
+    bytes public multa;
     string public image_url;
 
     bytes32 private jobId;
@@ -57,7 +56,6 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
-    }
     }
 
     /**
