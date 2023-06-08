@@ -7,5 +7,6 @@ router.post('/create', CarController.createCar);
 router.get('/all', CarController.getAllCars);
 router.get('/:id', CarController.getCarById);
 router.get('/fines/:vin', CarController.getCarFinesByVIN);
+router.post('/fines/:vin', CarController.addCarFineByVIN);
 
 module.exports = router;
