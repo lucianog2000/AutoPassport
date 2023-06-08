@@ -179,5 +179,8 @@ contract AutoPassport is ERC721, ERC721Burnable, Ownable, ERC721URIStorage  {
     {
         return super.tokenURI(tokenId);
     }
-
+    
+    function supportsInterface(bytes4 interfaceId) public view virtual override (ERC721, ERC721URIStorage) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 }
