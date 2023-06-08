@@ -7,8 +7,8 @@ require("hardhat-gas-reporter");
 require("solidity-coverage");
 require("hardhat-contract-sizer");
 require("@openzeppelin/hardhat-upgrades");
-require("@chainlink/env-enc").config();
-
+require('dotenv').config({ path: '../.env' });
+//require("@chainlink/env-enc").config();
 // 2. Import your private key from your pre-funded Moonbase Alpha testing account
 // const { privateKey } = require("./secrets.json")
 const SOL_SETTINGS = {
