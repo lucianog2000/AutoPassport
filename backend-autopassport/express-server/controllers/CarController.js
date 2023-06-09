@@ -11,7 +11,10 @@ const CarController = {
       // Search for the car with the given VIN
       const snapshot = await dataRef.where('vin', '==', carVIN).get();
       if (snapshot.empty) {
-        return res.status(404).json({ results: [] });
+        return res.status(404).json({ 
+          hasFines: "false",
+          results: [] 
+        });
       }
       // Code comment to show how to get data from snapshot and parse it to JSON string
       // const carData = snapshot.docs.map((doc) => doc.data());
@@ -22,7 +25,10 @@ const CarController = {
         dataParsed.push(doc.data());
       });
 
-      res.status(200).json({ results: dataParsed });
+      res.status(200).json({ 
+        hasFines: "true",
+        results: dataParsed 
+      });
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: 'Error fetching data' });
