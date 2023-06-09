@@ -60,7 +60,6 @@ export default function TokenViewForm(){
       const { hasFines } = objCar;
       const parseTokenId = parseHexToInt(tokenId);
       const ipfs = await fetchIpfs(uri);
-      console.log(ipfs);
       setTokenMetadata({tokenURI: uri, metadata: ipfs, tokenId: parseTokenId, hasFines: hasFines});
     } catch (error) {
       const { message } = error;
