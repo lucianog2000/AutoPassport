@@ -121,21 +121,43 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
             vinProcessing = "";
         }
     }
-    function checkFines() public {
-        for (uint256 i = 0; i < vinCreated.length; i++) {
-            if (keccak256(bytes(vinProcessing)) == keccak256(bytes(""))) {
-                requestFinesApi(vinCreated[i]);
-            }
-        }
-    }
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
+    }
+    function getCarAndCheckFines(
+        string memory vin
+    )
+        public
+        returns (
+            uint256 tokenId,
+            Car memory objCar,
+            string memory uri
+        )
+    {
+        require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
+        tokenId = _vinToTokenId[vin];
+        Car storage carObject = _cars[tokenId];
+        requestFinesApi(vin);
+        objCar = Car(
+            carObject.brand, 
+            carObject.model, 
+            carObject.vin,
+            carObject.color_code, 
+            carObject.date_of_manufacture,
+            carObject.warranty_expiration_date,
+            carObject.fuel_type,
+            carObject.mileage,
+            carObject.repair_history,
+            carObject.maintenance_history,
+            carObject.last_update,
+            carObject.hasFines);
+        uri = super.tokenURI(tokenId);
     }
     function getObjCarByVIN(
         string memory vin
     )
         public
-        view 
+        view
         returns (
             uint256 tokenId,
             Car memory objCar,
