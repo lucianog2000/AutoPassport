@@ -44,13 +44,13 @@ const CarController = {
     const dataRef = db.collection('carFines');
     const snapshot = await dataRef.where('vin', '==', carVIN).get();
     // Check if car not exists in the database
-    if (snapshot.empty) {
-      return res.status(404).json({ error: 'Car not found' });
+    if (!snapshot.empty) {
+      return res.status(404).json({ error: 'VIN already exists' });
     }
     // Try to add the car fine to the database
     try {
       const randomBody = {
-        vin: VIN.toString(),
+        vin: carVIN.toString(),
         fineDate: getRandomDateOfLastTwentyDays(),
         fineAmount: getRandomFinAmount(),
         fineDescription: getRandonFine(),
