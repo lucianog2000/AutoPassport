@@ -52,6 +52,9 @@ export default function TokenViewForm(){
   const onSubmit = async (formData) => {
     setTokenMetadata(null);
     try {
+      await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
       const data = await handleViewToken(formData.vin, contractAddress, contractABI);
       const { uri, tokenId, objCar } = data;
       const { hasFines } = objCar;
