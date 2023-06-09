@@ -50,11 +50,11 @@ const CarController = {
     // Try to add the car fine to the database
     try {
       const randomBody = {
-        vin: VIN,
+        vin: VIN.toString(),
         fineDate: getRandomDateOfLastTwentyDays(),
         fineAmount: getRandomFinAmount(),
         fineDescription: getRandonFine(),
-        paid: false
+        paid: 'false'
       };
       const newCarFine = randomBody;
       const response = await db.collection('carFines').add(newCarFine);
