@@ -10,11 +10,6 @@ import {
     useColorModeValue,    
 } from "@chakra-ui/react"
 
-
-// TODO: 
-// * Crear un estado global para guardar el ID del documento del usuario con su información
-// * Utilizar SelectInput para seleccionar la marca de vehiculo o determinar que marcas se pueden seleccionar
-
 export default function SignUpForm () {
 
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -22,10 +17,8 @@ export default function SignUpForm () {
     
     const onSubmit = async (data)=>{
         setLoading(true)
-        console.log("data",data)
         try{
             const responseUser = await firebase.auth.createUserWithEmailAndPassword(data.email,data.password)
-            console.log(responseUser.user.uid)
             if(responseUser.user.uid){
                 const document = await firebase.db.collection("users")
                 .add({
@@ -36,9 +29,6 @@ export default function SignUpForm () {
                     userId:responseUser?.user?.uid
                 })
                 setLoading(false)
-                // Guardar en un estado global el usuario para utilizarlo en la creacion/actualizacion de los tokens 
-                // ID del documento del usuario con su información
-                const DB_USER_DOC_ID = document.id
             }
         }catch(e){
             console.log(e)

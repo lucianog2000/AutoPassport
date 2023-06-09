@@ -52,42 +52,8 @@ export default function Footer() {
               color={useColorModeValue('gray.800', 'white')}
               fontSize={'m'}
               fontWeight={500}>
-              AutoPassport
-            </Text>
-            <Text fontSize={'sm'}>
               © 2023 AutoPassport®
             </Text>
-          </Stack>
-          <Stack align={'flex-start'}>
-            <ListHeader>Product</ListHeader>
-            <Link href={'#'}>Overview</Link>
-            <Link href={'#'}>Features</Link>
-            <Link href={'#'}>Tutorials</Link>
-            <Link href={'#'}>Pricing</Link>
-            <Link href={'#'}>Releases</Link>
-          </Stack>
-          <Stack align={'flex-start'}>
-            <ListHeader>Company</ListHeader>
-            <Link href={'#'}>About</Link>
-            <Link href={'#'}>Press</Link>
-            <Link href={'#'}>Careers</Link>
-            <Link href={'#'}>Contact</Link>
-            <Link href={'#'}>Partners</Link>
-          </Stack>
-          <Stack align={'flex-start'}>
-            <ListHeader>Support</ListHeader>
-            <Link href={'#'}>Help Center</Link>
-            <Link href={'#'}>Terms of Service</Link>
-            <Link href={'#'}>Legal</Link>
-            <Link href={'#'}>Privacy Policy</Link>
-            <Link href={'#'}>Status</Link>
-          </Stack>
-          <Stack align={'flex-start'}>
-            <ListHeader>Social</ListHeader>
-            <Link href={'#'}>Facebook</Link>
-            <Link href={'#'}>Twitter</Link>
-            <Link href={'#'}>Discord</Link>
-            <Link href={'#'}>LinkedIn</Link>
           </Stack>
         </SimpleGrid>
       </Container>

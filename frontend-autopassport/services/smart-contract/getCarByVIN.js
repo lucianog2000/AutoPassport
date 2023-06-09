@@ -1,5 +1,9 @@
 export async function getCarByVIN(contract, vin) {
-    // const transaction = await contract.getCarByVIN(vin);
-    const transaction = await contract.getObjCarByVIN(vin);
-    return transaction;
+    try {
+        await contract.checkFines(vin);
+        const transaction = await contract.getObjCarByVIN(vin);
+        return transaction;
+    } catch (error) {
+        console.log(error);
+    }
 }
