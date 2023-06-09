@@ -39,12 +39,21 @@ export default function TokenUpdateForm(){
         mileageAtTheMoment: mileage
       };
     };
+
+    const fetchIpfs = async (uri) => {
+      try {
+        const ipfs = await fetch(uri);
+        return ipfs.json();
+      } catch (error) {
+        console.log(error);
+      }
+    }
     try {
       // Get token data
       const tokenData = await handleViewToken(formData.vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
-      const ipfsResponse = await axios.get(tokenData.uri)
-      const newMetadata = ipfsResponse.data;
+      const ipfs = await fetchIpfs(tokenData.uri);
+      const newMetadata = ipfs;
       // Update metadata
       newMetadata.attributes.last_update = new Date().toISOString().split("T")[0];
       newMetadata.attributes.mileage = formData.mileage;
