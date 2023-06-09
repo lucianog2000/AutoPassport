@@ -11,14 +11,12 @@ import {
 } from '@chakra-ui/react';
 import getConfig from 'next/config'
 import { useRouter } from 'next/router';
-import { useForm } from 'react-hook-form';  
+import { set, useForm } from 'react-hook-form';  
 import { handleViewToken } from '../../services/smart-contract/handleViewToken';
 import axios from 'axios';
 import { pinningMetadataToIPFS } from '@components/services/IPFS/pinningMetadataToIPFS';
 import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
 import { handleUpdateToken } from '@components/services/smart-contract/handleUpdateToken';
-import SelectInput from '../Molecules/SelectInput';
-import { getAllFuels } from '../../services/firebase/fuelService';
 
 export default function TokenUpdateForm(){
   const router = useRouter();
@@ -27,20 +25,7 @@ export default function TokenUpdateForm(){
   const PINATA_JWT = env.PINATA_JWT;
   const contractABI = require("../../utils/AutoPassport.json").abi;
   const { handleSubmit, register, errors } = useForm();
-  // const [fuelTypes, setFuelTypes] = useState([]);
 
-  // useEffect(() => {
-  //   const fetchFuelTypes = async () => {
-  //     getAllFuels()
-  //     .then((fuelTypes) => {
-  //       setFuelTypes(fuelTypes.map((doc) => ({ ...doc.data(), id: doc.id })))
-  //     })
-  //     .catch((error) => {
-  //       console.log(error)
-  //     })
-  //   }
-  //   fetchFuelTypes();
-  // }, []);
 
   const onSubmit = async (formData) => {
     let newRepair;
@@ -55,15 +40,15 @@ export default function TokenUpdateForm(){
       };
     };
     try {
-      // obtenemos los metadatos del auto
+      // Get token data
       const tokenData = await handleViewToken(formData.vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
       const ipfsResponse = await axios.get(tokenData.uri)
       const newMetadata = ipfsResponse.data;
-      // actualizamos los metadatos del auto
+      // Update metadata
       newMetadata.attributes.last_update = new Date().toISOString().split("T")[0];
-      //parseInt temporal ya se el form esta levantando el dato como string
-      newMetadata.attributes.mileage = parseInt(formData.mileage);
+      newMetadata.attributes.mileage = formData.mileage;
+
       setRepairData(newMetadata);
       setMaintenanceData(newMetadata);
       // subirla a pinata y obtener nuevo CID
@@ -118,13 +103,6 @@ export default function TokenUpdateForm(){
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Update AutoPassport
           </Heading>
-          {/* <SelectInput 
-            id="typeOfFuel"
-            label="Type of fuel"
-            placeholder="Type of fuel"
-            options={fuelTypes}
-            register={register("typeOfFuel", { required: true })}
-          /> */}
   
           {FORM_ITEMS.map((item, length) => (
               <FormControl key={length} id={item.id} isRequired={item.isRequired}>
@@ -133,7 +111,7 @@ export default function TokenUpdateForm(){
                 placeholder={item.placeholder}
                 _placeholder={{ color: 'gray.500' }}
                 type={item.type}
-                {...register(item.id, { required: true })}
+                {...register(item.id, { required: true, valueAsNumber: item.type === 'number' })}
               />
             </FormControl>
           ))}
@@ -190,14 +168,20 @@ const FORM_ITEMS = [
 const RepairSection = ({register}) => {
   const [repairs, setRepairs] = useState([]);
   const ref = useRef(null)
+  const [isHidden, setIsHidden] = useState(false)
 
   const handleAddRepair = () => {
+
+    if (repairs.length > 0) {
+      alert("At the moment we can only process one repair per update")
+      setIsHidden(true)
+      return;
+    }
     const newRepair = {
       description: '',
       replacementParts: '',
     };
     setRepairs([...repairs, newRepair]);
-    alert("Por el momento solo podemos procesar una sola reparación por update")
   };
 
   const handleInputChange = (index, field, value) => {
@@ -210,7 +194,7 @@ const RepairSection = ({register}) => {
     <div>
       <Flex>
         <FormLabel>Add repair:</FormLabel>
-        <Button size="sm" onClick={handleAddRepair}>
+        <Button size="sm" onClick={handleAddRepair} hidden={isHidden}>
           +
         </Button>
       </Flex>
@@ -252,14 +236,19 @@ const RepairSection = ({register}) => {
 
 const MaintenanceSection = ({register}) => {
   const [maintenance, setMaintenance] = useState([]);
+  const [isHidden, setIsHidden] = useState(false)
 
   const handleAddMaintenance = () => {
+    if (maintenance.length > 0) {
+      setIsHidden(true)
+      alert("At the moment we can only process one maintenance per update")
+      return;
+    }
     const newMaintenance = {
       description: '',
       replacementParts: ''
     };
     setMaintenance([...maintenance, newMaintenance]);
-    alert("Por el momento solo podemos procesar un solo mantenimiento por update")
   };
 
   const handleInputChange = (index, field, value) => {
@@ -272,7 +261,7 @@ const MaintenanceSection = ({register}) => {
     <div>
       <Flex>
         <FormLabel>Add maintenance:</FormLabel>
-        <Button size="sm" onClick={handleAddMaintenance}>
+        <Button size="sm" onClick={handleAddMaintenance} hidden={isHidden}>
           +
         </Button>
       </Flex>

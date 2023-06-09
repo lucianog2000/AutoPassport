@@ -45,10 +45,6 @@ export default function TokenViewForm(){
   const onSubmit = async (formData) => {
 
     setTokenMetadata(null);
-
-    // TODO: Manejar error ya que handleViewToken devuelve siempre lo mismo, por mas que el token no exista
-    // TODO: Manejar error de que no se encuentre el token
-    // Revisar que no este harcodeado en el backend
     try {
       const data = await handleViewToken(formData.vin, contractAddress, contractABI);
       const { uri, tokenId } = data;
@@ -117,8 +113,10 @@ export default function TokenViewForm(){
 const TokenInfo = ({ tokenMetadata }) => {
   const {tokenId, metadata } = tokenMetadata
   const { name, image, attributes } = metadata;
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS
 
-  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${'0x3FbE7826e1931373f355C86dd97873E3670633C0'}/${tokenId}`;
+  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${contractAddress}/${tokenId}`;
   
   const RenderDataSection = (heading, value) => (
     <Text py="1">

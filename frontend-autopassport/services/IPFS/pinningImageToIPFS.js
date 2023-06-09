@@ -15,7 +15,6 @@ export const pinningImageToIPFS = async (file, PINATA_JWT) => {
   formData.append('pinataOptions', options);
 
   try {
-    //hacemos la peticion a pinata para subir el archivo y obtener el CID de la imagen que subimos a pinata
     const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS/", formData, {
       maxBodyLength: "Infinity",
       headers: {
@@ -28,6 +27,5 @@ export const pinningImageToIPFS = async (file, PINATA_JWT) => {
   } catch (error) {
     console.log('Error fetching IPFS file: ', error);
   }
-  //retornamos el CID de la imagen que subimos a pinata
   return CID;
 }
