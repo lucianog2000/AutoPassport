@@ -43,6 +43,14 @@ export default function TokenViewForm(){
     return parseTokenId;
   }
 
+  const fetchIpfs = async (uri) => {
+    try {
+      const ipfs = await fetch(uri);
+      return ipfs.json();
+    } catch (error) {
+      console.log(error);
+    }
+  }
   const onSubmit = async (formData) => {
 
     setTokenMetadata(null);
@@ -51,8 +59,8 @@ export default function TokenViewForm(){
       const { uri, tokenId, objCar } = data;
       const { hasFines } = objCar;
       const parseTokenId = parseHexToInt(tokenId);
-      const ipfs = await axios.get(uri);
-      setTokenMetadata({tokenURI: uri, metadata: ipfs.data, tokenId: parseTokenId, hasFines: hasFines});
+      const ipfs = await fetchIpfs(uri);
+      setTokenMetadata({tokenURI: uri, metadata: ipfs, tokenId: parseTokenId, hasFines: hasFines});
     } catch (error) {
       const { message } = error;
       console.log(message);
