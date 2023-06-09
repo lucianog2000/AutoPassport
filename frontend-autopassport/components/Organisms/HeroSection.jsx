@@ -57,7 +57,7 @@ export default function HeroSection() {
               onClick={() => router.push('/create-nft')}>
               Create AutoPassport
             </Button>
-            <YouTubeVideo title='How It Works' />
+            // <YouTubeVideo title='How It Works' />
           </Stack>
         </Stack>
       </Container>
