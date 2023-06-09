@@ -11,13 +11,20 @@ const CarController = {
       // Search for the car with the given VIN
       const snapshot = await dataRef.where('vin', '==', carVIN).get();
       if (snapshot.empty) {
-        return res.status(404).json('');
+        return res.status(404).json({ error: 'Car not found' });
       }
-      const carData = snapshot.docs.map((doc) => doc.data());
-      const dataParsed = carData.map((fact) => JSON.stringify(fact)).join(", ");
-      // Send the data as a string
-      res.send(dataParsed);
+      // Code comment to show how to get data from snapshot and parse it to JSON string
+      // const carData = snapshot.docs.map((doc) => doc.data());
+      // const dataParsed = carData.map((fact) => JSON.stringify(fact)).join(", ");
+
+      const dataParsed = [];
+      snapshot.forEach((doc) => {
+        dataParsed.push(doc.data());
+      });
+
+      res.status(200).json({ results: dataParsed });
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: 'Error fetching data' });
     }
   },
@@ -43,11 +50,11 @@ const CarController = {
     // Try to add the car fine to the database
     try {
       const randomBody = {
-        vin: VIN,
+        vin: VIN.toString(),
         fineDate: getRandomDateOfLastTwentyDays(),
         fineAmount: getRandomFinAmount(),
         fineDescription: getRandonFine(),
-        paid: false
+        paid: 'false'
       };
       const newCarFine = randomBody;
       const response = await db.collection('carFines').add(newCarFine);
