@@ -17,6 +17,7 @@ import {
   Card,
   CardBody,
   CardFooter,
+  Badge,
 } from '@chakra-ui/react';
 import { useState } from "react";
 import { useRouter } from "next/router";
@@ -47,10 +48,11 @@ export default function TokenViewForm(){
     setTokenMetadata(null);
     try {
       const data = await handleViewToken(formData.vin, contractAddress, contractABI);
-      const { uri, tokenId } = data;
+      const { uri, tokenId, objCar } = data;
+      const { hasFines } = objCar;
       const parseTokenId = parseHexToInt(tokenId);
       const ipfs = await axios.get(uri);
-      setTokenMetadata({tokenURI: uri, metadata: ipfs.data, tokenId: parseTokenId});
+      setTokenMetadata({tokenURI: uri, metadata: ipfs.data, tokenId: parseTokenId, hasFines: hasFines});
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -111,7 +113,7 @@ export default function TokenViewForm(){
 
 
 const TokenInfo = ({ tokenMetadata }) => {
-  const {tokenId, metadata } = tokenMetadata
+  const {tokenId, metadata, hasFines } = tokenMetadata
   const { name, image, attributes } = metadata;
   const env = getConfig().publicRuntimeConfig;
   const contractAddress = env.SMART_CONTRACT_ADDRESS
@@ -214,7 +216,7 @@ const TokenInfo = ({ tokenMetadata }) => {
             size='lg'
             color={useColorModeValue('gray.800', 'gray.400')}
             >
-              {name}
+              {name} {hasFines && <Badge p={2} colorScheme="red" size='lg'>🔉 This car has fines</Badge>}
             </Heading>
             {RenderDataSection('Milage', attributes.mileage)}
             {RenderDataSection('Color code', attributes.color_code)}
