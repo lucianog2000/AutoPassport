@@ -19,13 +19,11 @@ import {
   CardFooter,
   Badge,
 } from '@chakra-ui/react';
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { useRouter } from "next/router";
-import axios from 'axios';
 import getConfig from 'next/config'
 import { handleViewToken } from '@components/services/smart-contract/handleViewToken';
 import { useForm } from "react-hook-form";
-import TokenUpdate from '@components/pages/update-nft-metadata';
 
 export default function TokenViewForm(){
   const  [tokenMetadata, setTokenMetadata] = useState(null);
@@ -36,7 +34,7 @@ export default function TokenViewForm(){
   const stackBackgroundColor = useColorModeValue('white', 'gray.700')
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
-
+  
   const parseHexToInt = (hexTokenId) => {
     const hexValue = hexTokenId._hex.startsWith('0x') ? hexTokenId._hex.slice(2) : hexTokenId._hex;
     const parseTokenId = parseInt(hexValue, 16);
@@ -52,7 +50,6 @@ export default function TokenViewForm(){
     }
   }
   const onSubmit = async (formData) => {
-
     setTokenMetadata(null);
     try {
       const data = await handleViewToken(formData.vin, contractAddress, contractABI);
@@ -60,7 +57,9 @@ export default function TokenViewForm(){
       const { hasFines } = objCar;
       const parseTokenId = parseHexToInt(tokenId);
       const ipfs = await fetchIpfs(uri);
-      setTokenMetadata({tokenURI: uri, metadata: ipfs, tokenId: parseTokenId, hasFines: hasFines});
+      setTimeout(() => {
+        setTokenMetadata({tokenURI: uri, metadata: ipfs, tokenId: parseTokenId, hasFines: hasFines});
+      }, 15000);
     } catch (error) {
       const { message } = error;
       console.log(message);

@@ -120,6 +120,10 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
             carObject.hasFines = true;
             vinProcessing = "";
         }
+        if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("false"))) {
+            carObject.hasFines = false;
+            vinProcessing = "";
+        }
     }
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);

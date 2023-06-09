@@ -5,6 +5,7 @@ export async function handleViewToken(vin, contractAddress, contractABI) {
   try {
     const contract = getContract(contractAddress, contractABI);
     const response = await getCarByVIN(contract, vin);
+    console.log(response);
     console.log(`The token has been obtained successfully`);
     return response;
   }
