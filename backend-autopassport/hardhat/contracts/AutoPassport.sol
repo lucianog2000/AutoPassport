@@ -116,13 +116,15 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
     ) public recordChainlinkFulfillment(requestId) {
         uint256 tokenId = _vinToTokenId[vinProcessing];
         Car storage carObject = _cars[tokenId];
-        if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("true"))) {
-            carObject.hasFines = true;
-            vinProcessing = "";
-        }
-        if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("false"))) {
-            carObject.hasFines = false;
-            vinProcessing = "";
+        for (; keccak256(bytes(vinProcessing)) != keccak256(bytes("")); ) {
+            if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("true"))) {
+                carObject.hasFines = true;
+                vinProcessing = "";
+            }
+            if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("false"))) {
+                carObject.hasFines = false;
+                vinProcessing = "";
+            }
         }
     }
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
@@ -131,6 +133,25 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
     function checkFines(string memory vin) public {
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         requestFinesApi(vin);
+    }
+    function checkFinesAndReturnCar(string memory vin) public returns (Car memory objCar) {
+        require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
+        requestFinesApi(vin);
+        uint256 tokenId = _vinToTokenId[vin];
+        Car storage carObject = _cars[tokenId];
+        objCar = Car(
+            carObject.brand, 
+            carObject.model, 
+            carObject.vin,
+            carObject.color_code, 
+            carObject.date_of_manufacture,
+            carObject.warranty_expiration_date,
+            carObject.fuel_type,
+            carObject.mileage,
+            carObject.repair_history,
+            carObject.maintenance_history,
+            carObject.last_update,
+            carObject.hasFines);
     }
     function getObjCarByVIN(
         string memory vin
