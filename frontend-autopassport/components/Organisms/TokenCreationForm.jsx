@@ -78,7 +78,9 @@ export default function TokenCreationForm() {
         formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
       await handleCreationToken(formValues, contractAddress, contractABI);
-      router.push('/');
+      setTimeout(() => {
+        router.push('/');
+      }, 2500);
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -137,6 +139,7 @@ export default function TokenCreationForm() {
                 type={item.type}
                 onChange={handleInputChange}
                 {...(item.maxLength && { maxLength: item.maxLength })}
+                {...(item.minLength && { minLength: item.minLength })}
                 {...(item.max && { max: item.max })}
                 {...(item.defaultValue && { defaultValue: item.defaultValue })}
               />
@@ -185,13 +188,14 @@ const FORM_ITEMS = [
     id: 'model',
     label: 'Model',
     placeholder: 'Model',
-    type: 'text',
+    type: 'text'
   },
   {
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
     placeholder: 'VIN',
-    type: 'text'
+    type: 'text',
+    minLength: '15'
   },
   // {
   //   id: 'typeOfFuel',
@@ -237,4 +241,5 @@ const SELECT_BRAND_ITEMS = [
   { key: 7, id: "nissan", value: "Nissan", name: "Nissan" },
   { key: 8, id: "toyota", value: "Toyota", name: "Toyota" },
   { key: 9, id: "volkswagen", value: "Volkswagen", name: "Volkswagen" },
+  { key: 10, id: "tesla", value: "Tesla", name: "Tesla" },
 ];

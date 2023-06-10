@@ -52,30 +52,30 @@ export default function TokenUpdateForm(){
       await window.ethereum.request({
         method: "eth_requestAccounts"
       });
-      // Get token data
+
       const tokenData = await handleViewToken(formData.vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
       const ipfs = await fetchIpfs(tokenData.uri);
       const newMetadata = ipfs;
-      // Update metadata
+
       newMetadata.attributes.last_update = new Date().toISOString().split("T")[0];
       newMetadata.attributes.mileage = formData.mileage;
 
       setRepairData(newMetadata);
       setMaintenanceData(newMetadata);
-      // subirla a pinata y obtener nuevo CID
+
       const newMetadataCID = await pinningMetadataToIPFS(newMetadata, PINATA_JWT);
       if (newMetadataCID) {
         newMetadata.attributes.newURI = 'https://gateway.pinata.cloud/ipfs/'+ newMetadataCID;
         newMetadata.attributes.newRepair = newRepair;
         newMetadata.attributes.newMaintenance = newMaintenance;
       }
-      // actualizar el token
-      await handleUpdateToken(newMetadata.attributes, contractAddress, contractABI);
-      // eliminar la metadata vieja de pinata
+     
+      const transactionHash = await handleUpdateToken(newMetadata.attributes, contractAddress, contractABI);
       if (oldMetadataCID) {
         unpinningFileToIPFS(oldMetadataCID, PINATA_JWT);
       }
+      alert(`The token has been updated successfully ${transactionHash}`);
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -123,6 +123,7 @@ export default function TokenUpdateForm(){
                 placeholder={item.placeholder}
                 _placeholder={{ color: 'gray.500' }}
                 type={item.type}
+                minLength={item.minLength}
                 {...register(item.id, { required: true, valueAsNumber: item.type === 'number' })}
               />
             </FormControl>
@@ -164,7 +165,8 @@ const FORM_ITEMS = [
     label: 'VIN',
     placeholder: 'VIN',
     isRequired: true,
-    type: 'string'
+    type: 'string',
+    minLength: '15'
   },
   { 
     id: 'mileage',
