@@ -80,7 +80,7 @@ export default function TokenCreationForm() {
       await handleCreationToken(formValues, contractAddress, contractABI);
       setTimeout(() => {
         router.push('/');
-      }, 5000);
+      }, 2500);
     } catch (error) {
       const { message } = error;
       console.log(message);
