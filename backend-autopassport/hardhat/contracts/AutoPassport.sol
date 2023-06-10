@@ -6,12 +6,18 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable, ERC721URIStorage  {
     using Chainlink for Chainlink.Request;
     bytes32 private jobId;
     uint256 private fee;
     string public vinProcessing = "";
     string [] public vinCreated;
+    string public gasolineInflation;
+    address public oracleId;
+    string public jobGasId;
+    uint256 private fee2;
     struct Car {
         string brand;
         string model;
@@ -37,9 +43,9 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
-        interval = 20;
-        lastTimeStamp = block.timestamp;
-    
+        fee2 = 1000000000000000000;
+        jobGasId = "d220e5e687884462909a03021385b7ae";
+        oracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
     }
     function createAutoPassport(
         address to, 
@@ -119,21 +125,67 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
     ) public recordChainlinkFulfillment(requestId) {
         uint256 tokenId = _vinToTokenId[vinProcessing];
         Car storage carObject = _cars[tokenId];
-        if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("true"))) {
-            carObject.hasFines = true;
-            vinProcessing = "";
-        }
-        if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("false"))) {
-            carObject.hasFines = false;
-            vinProcessing = "";
+        for (; keccak256(bytes(vinProcessing)) != keccak256(bytes("")); ) {
+            if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("true"))) {
+                carObject.hasFines = true;
+                vinProcessing = "";
+            }
+            if (keccak256(bytes(hasFinesResponse)) == keccak256(bytes("false"))) {
+                carObject.hasFines = false;
+                vinProcessing = "";
+            }
         }
     }
+    function requestGasolineInflation()
+        public
+        returns (
+            bytes32 requestId
+        )
+    {
+        Chainlink.Request memory req = buildChainlinkRequest(
+            bytes32(bytes(jobGasId)),
+            address(this),
+            this.fulfillGasolineInflation.selector
+        );
+        req.add("service", "truflation/current");
+        req.add("data", '{"interval":"day","start-date":"2021-01-01","end-date":"2023-06-02","location":"us","categories":"true"}');
+        req.add("keypath", "categories.Gasoline, other fuels, and motor oil");
+        req.add("abi", "json");
+        req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
+        return sendChainlinkRequestTo(oracleId, req, fee2);
+    }
+    function fulfillGasolineInflation(bytes32 _requestId, bytes memory _inflation)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        gasolineInflation = string(_inflation);
+    }
+
     function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
         super._burn(tokenId);
     }
     function checkFines(string memory vin) public {
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         requestFinesApi(vin);
+    }
+    function checkFinesAndReturnCar(string memory vin) public returns (Car memory objCar) {
+        require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
+        requestFinesApi(vin);
+        uint256 tokenId = _vinToTokenId[vin];
+        Car storage carObject = _cars[tokenId];
+        objCar = Car(
+            carObject.brand, 
+            carObject.model, 
+            carObject.vin,
+            carObject.color_code, 
+            carObject.date_of_manufacture,
+            carObject.warranty_expiration_date,
+            carObject.fuel_type,
+            carObject.mileage,
+            carObject.repair_history,
+            carObject.maintenance_history,
+            carObject.last_update,
+            carObject.hasFines);
     }
     function getObjCarByVIN(
         string memory vin
@@ -174,5 +226,15 @@ contract AutoPassport is ChainlinkClient, ConfirmedOwner, ERC721, ERC721Burnable
     }
     function supportsInterface(bytes4 interfaceId) public view virtual override (ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+    function withdrawLink() public onlyOwner {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(
+            link.transfer(msg.sender, link.balanceOf(address(this))),
+            "Unable to transfer"
+        );
+    }
+    function getGasInflation() public view returns (string memory) {
+        return gasolineInflation;
     }
 }
