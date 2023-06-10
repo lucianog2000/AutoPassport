@@ -1,14 +1,14 @@
-AUTOPASSPORT
+# Autopassport
 
 AutoPassport is a blockchain-based project focused on vehicle history. It enables secure tracking and storage of a vehicle's history using smart contracts and non-fungible tokens (NFTs).
 
 The project is divided into two main components:
 
-frontend-autopassport
+## frontend-autopassport
 
 The frontend-autopassport folder contains the interactive user interface for AutoPassport. It allows users to interact with vehicle history and view relevant information. The frontend utilizes modern web technologies such as React, Next.js, JavaScript, and HTML/CSS.
 
-Getting Started
+## Getting Started
 
 To set up and run the frontend-autopassport component, follow these steps:
 
@@ -22,7 +22,7 @@ backend-autopassport
 
 The backend-autopassport folder contains the server-side component of AutoPassport. It includes the development of smart contracts using Node.js and Hardhat, as well as an Express API for future implementations.
 
-Getting Started
+## Getting Started
 
 To deploy and verify the backend-autopassport component, follow these steps:
 
@@ -34,17 +34,17 @@ To deploy and verify the backend-autopassport component, follow these steps:
 - To verify the contract, use the command: npx hardhat verify <contract address>.
 - The contract will then provide access to its read and write functions from the Polygon Scan Testnet.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-AUTOPASSPORT
+# Autopassport
 
 AutoPassport es un proyecto de historial de vehículos basado en tecnología blockchain. Permite el seguimiento y almacenamiento seguro del historial de un vehículo utilizando contratos inteligentes y tokens no fungibles (NFT).
 
 El proyecto se divide en dos componentes principales:
 
-frontend-autopassport
+## frontend-autopassport
 
 El frontend de AutoPassport es una interfaz de usuario interactiva que permite a los usuarios interactuar con el historial de vehículos y visualizar la información relevante. Utiliza tecnologías web modernas como React, Next, JavaScript y HTML/CSS.
 
-Cómo empezar
+## Cómo empezar
 
 Sigue los pasos a continuación para configurar y ejecutar el frontend de AutoPassport:
 
@@ -57,11 +57,11 @@ Sigue los pasos a continuación para configurar y ejecutar el frontend de AutoPa
 - npm run dev
 - Accede a la aplicación en tu navegador en la dirección http://localhost:3000.
 
-backend-autopassport
+## backend-autopassport
 
 El backend de AutoPassport es la parte del servidor en donde se llevó a cabo el desarrollo del smart contract empleando Node, Hardhat y también se realizó una API con Express para próximas implementaciones.
 
-Cómo empezar
+## Cómo empezar
 
 Sigue los pasos a continuación para hacer el despliegue y verificar el contrato inteligente de AutoPassport:
 
