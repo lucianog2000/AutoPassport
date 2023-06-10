@@ -49,6 +49,9 @@ export default function TokenUpdateForm(){
       }
     }
     try {
+      await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
       // Get token data
       const tokenData = await handleViewToken(formData.vin, contractAddress, contractABI);
       const oldMetadataCID = tokenData.uri.split("ipfs/")[1];
