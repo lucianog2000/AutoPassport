@@ -16,7 +16,7 @@ contract AutoPassport is
     ERC721Burnable,
     ERC721URIStorage
 {
-    PassportAccess private _passportAccess;
+    PassportAccess private passportAccess;
     using Chainlink for Chainlink.Request;
     bytes32 private jobId;
     uint256 private fee;
@@ -48,8 +48,8 @@ contract AutoPassport is
     mapping(string => bool) private _isVinUsed;
     mapping(uint256 => bool) private _isTokenIdUsed;
 
-    constructor(address passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
-         _passportAccess = PassportAccess(passportAccessAddress);
+    constructor(address _passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
+        passportAccess = PassportAccess(_passportAccessAddress);
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
@@ -59,6 +59,15 @@ contract AutoPassport is
         oracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
     }
 
+    modifier onlyWorkshop() {
+        require(passportAccess.accessLevels(msg.sender) == PassportAccess.AccessLevel.Workshop, "Only Workshop");
+        _;
+    }
+
+    modifier onlyManufacturer() {
+        require(passportAccess.accessLevels(msg.sender) == PassportAccess.AccessLevel.Manufacturer, "Only Manufacturer");
+        _;
+    }
     function createAutoPassport(
         address to,
         string memory brand,
@@ -70,9 +79,9 @@ contract AutoPassport is
         string memory fuel_type,
         string memory last_update,
         string memory uriIpfsUrl
-    ) public {
+    ) public onlyManufacturer{
         require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Manufacturer,
+            passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Manufacturer,
             "Only Manufacturer"
         );
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
@@ -111,9 +120,9 @@ contract AutoPassport is
         string memory newMaintenance,
         string memory newURI,
         string memory last_update
-    ) public {
+    ) public onlyWorkshop{
         require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
+            passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
             "Only Workshop"
         );
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");

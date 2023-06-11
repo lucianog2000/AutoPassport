@@ -51,5 +51,4 @@ contract PassportAccess {
         emit ManufacturerAdded(_manufacturer);
     }
 
-
 }
