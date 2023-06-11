@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import "@chainlink/contracts/src/v0.8/ConfirmedOwner.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "./PassportAccess.sol";
 
 contract AutoPassport is
     ChainlinkClient,
@@ -15,6 +16,7 @@ contract AutoPassport is
     ERC721Burnable,
     ERC721URIStorage
 {
+    PassportAccess private _passportAccess;
     using Chainlink for Chainlink.Request;
     bytes32 private jobId;
     uint256 private fee;
@@ -45,8 +47,10 @@ contract AutoPassport is
     mapping(string => uint256) private _vinToTokenId;
     mapping(string => bool) private _isVinUsed;
     mapping(uint256 => bool) private _isTokenIdUsed;
+    // string[] public vinCreated;
 
-    constructor() ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
+    constructor(address passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
+         _passportAccess = PassportAccess(passportAccessAddress);
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
@@ -55,6 +59,11 @@ contract AutoPassport is
         jobGasId = "d220e5e687884462909a03021385b7ae";
         oracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
     }
+
+    // modifier onlyWhitelist() {
+    //     require(_registerAccess.accessLevels(msg.sender) >= RegisterAccess.AccessLevel.Whitelist, "Only whitelist");
+    //     _;
+    // }
 
     function createAutoPassport(
         address to,
@@ -68,6 +77,10 @@ contract AutoPassport is
         string memory last_update,
         string memory uriIpfsUrl
     ) public {
+        require(
+            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Whitelist,
+            "Only whitelist"
+        );
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current() + 1;
         require(

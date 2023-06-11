@@ -1,4 +1,3 @@
-// 1. Import the Ethers plugin required to interact with the contract
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
@@ -9,20 +8,13 @@ require("hardhat-contract-sizer");
 require("@openzeppelin/hardhat-upgrades");
 // require('dotenv').config({ path: '../.env' });
 require("@chainlink/env-enc").config();
-// 2. Import your private key from your pre-funded Moonbase Alpha testing account
-// const { privateKey } = require("./secrets.json")
+
 const SOL_SETTINGS = {
   optimizer: {
     enabled: true,
     runs: 1_000,
   },
 };
-
-const PRIVATE_KEY_DEV = process.env.PRIVATE_KEY_DEV;
-const ZK_MUMBAI_RPC_URL = process.env.ZK_MUMBAI_RPC_URL_QUICKNODE;
-// const PRIVATE_KEY = process.env.PRIVATE_KEY_DEV
-
-const MUMBAI_RPC_URL = process.env.MUMBAI_RPC_URL_QUICKNODE;
 
 module.exports = {
   etherscan: {
@@ -31,7 +23,6 @@ module.exports = {
     },
   },
 
-  // 3. Specify the Solidity version
   solidity: {
     compilers: [
       {
@@ -50,24 +41,16 @@ module.exports = {
         version: "0.8.11",
         settings: SOL_SETTINGS,
       },
+      {
+        version: "0.8.17",
+        settings: SOL_SETTINGS,
+      },
     ],
   },
-  // solidity: "0.8.1",
-  defaultNetwork: "hardhat",
+ 
+  defaultNetwork: "mumbai",
 
   networks: {
-    // 4. Add the Moonbase Alpha network specification
-    // moonbase: {
-    //     url: "https://rpc.api.moonbase.moonbeam.network",
-    //     chainId: 1287, // (hex: 0x507),
-    //     accounts: [PRIVATE_KEY_DEV],
-    // },
-
-    // zkmumbai: {
-    //     url: ZK_MUMBAI_RPC_URL,
-    //     accounts: [PRIVATE_KEY_DEV],
-    //     chainId: 1442,
-    // },
 
     mumbai: {
       url: process.env.MUMBAI_RPC_URL,
