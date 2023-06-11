@@ -4,16 +4,15 @@ pragma solidity 0.8.17;
 contract PassportAccess {
     enum AccessLevel {
         None,
-        Workshops,
+        Workshop,
         Owner
     }
 
     mapping(address => AccessLevel) public accessLevels;
 
-    event MemberAdded(address member);
-    event MemberRemoved(address member);
+    event WorkshopAdded(address workshop);
+    event WorkshopRemoved(address );
 
-    string[] private info;
     address public owner;
 
     constructor() {
@@ -26,31 +25,9 @@ contract PassportAccess {
         _;
     }
 
-    modifier onlyWorkshops() {
-        require(accessLevels[msg.sender] >= AccessLevel.Workshop, "Only Workshops");
+    modifier onlyWorkshop() {
+        require(accessLevels[msg.sender] >= AccessLevel.Workshop, "Only Workshop");
         _;
-    }
-
-    event InfoChange(string oldInfo, string newInfo);
-
-    function getInfo(uint256 index) public view returns (string memory) {
-        require(index < info.length, "Invalid index");
-        return info[index];
-    }
-
-    function addInfo(string memory _info) public onlyWorkshops {
-        info.push(_info);
-        emit InfoChange("", _info);
-    }
-
-    function setInfo(uint256 index, string memory _info) public onlyWorkshops{
-        require(index < info.length, "Invalid index");
-        emit InfoChange(info[index], _info);
-        info[index] = _info;
-    }
-
-    function listInfo() public view returns (string[] memory) {
-        return info;
     }
 
     function delWorkshop(address _workshop) public onlyOwner {

@@ -47,7 +47,6 @@ contract AutoPassport is
     mapping(string => uint256) private _vinToTokenId;
     mapping(string => bool) private _isVinUsed;
     mapping(uint256 => bool) private _isTokenIdUsed;
-    // string[] public vinCreated;
 
     constructor(address passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
          _passportAccess = PassportAccess(passportAccessAddress);
@@ -59,11 +58,6 @@ contract AutoPassport is
         jobGasId = "d220e5e687884462909a03021385b7ae";
         oracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
     }
-
-    // modifier onlyWhitelist() {
-    //     require(_registerAccess.accessLevels(msg.sender) >= RegisterAccess.AccessLevel.Whitelist, "Only whitelist");
-    //     _;
-    // }
 
     function createAutoPassport(
         address to,
@@ -78,8 +72,8 @@ contract AutoPassport is
         string memory uriIpfsUrl
     ) public {
         require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Whitelist,
-            "Only whitelist"
+            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
+            "Only Workshop"
         );
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current() + 1;
@@ -118,6 +112,10 @@ contract AutoPassport is
         string memory newURI,
         string memory last_update
     ) public {
+        require(
+            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
+            "Only Workshop"
+        );
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         uint256 tokenId = _vinToTokenId[vin];
         Car storage carObject = _cars[tokenId];
@@ -203,7 +201,6 @@ contract AutoPassport is
     }
     
     function requestCarPurchasesInflation(
-        string memory data_
     ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             bytes32(bytes(jobGasId)),
