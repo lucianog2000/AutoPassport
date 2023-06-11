@@ -45,20 +45,15 @@ export default function TokenCreationForm() {
 
     event.preventDefault();
     try {
-      //obtenemos la cuenta de metamask conectada a nuestra app
       const accounts = await window.ethereum.request({
         method: "eth_requestAccounts"
       });
       formValues.last_update = new Date().toISOString().split('T')[0];
-      //seteamos la cuenta de metamask como walletAddress como string
       formValues.walletAddress = accounts[0]?.toString();
-      //subimos la imagen a pinata y obtenemos el CID
       imageCID = await pinningImageToIPFS(formValues.image, PINATA_JWT); 
       if (imageCID) {
-        //guardamos la url de la imagen en formValues
         formValues['image'] = 'https://gateway.pinata.cloud/ipfs/' + imageCID;
       }
-      //subimos a pinata la metadata/uri que va a corresponder al nft y obtenemos el CID
       const { brand, model, image, vehicleIdentificationNumber, colorCode, fuel_type, dateOfManufacture, warrantyExpirationDate, last_update } = formValues;
       const tokenMetadata = {
         "name": `${brand} ${model}`,
@@ -80,17 +75,15 @@ export default function TokenCreationForm() {
       }
       metadataCID = await pinningMetadataToIPFS(tokenMetadata, PINATA_JWT)
       if (metadataCID) {
-        //guardamos la url de la metadata/uri en formValues
         formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
-      //interactuamos con el smart contract para crear el nft
       await handleCreationToken(formValues, contractAddress, contractABI);
-      //redireccionamos a la home para evitar problemas en el form
-      router.push('/');
+      setTimeout(() => {
+        router.push('/');
+      }, 2500);
     } catch (error) {
       const { message } = error;
       console.log(message);
-      //si ocurre un error al crear el nft, eliminamos la imagen y la metadata/uri de pinata
       if (imageCID) {
         unpinningFileToIPFS(imageCID, PINATA_JWT);
       }
@@ -146,6 +139,7 @@ export default function TokenCreationForm() {
                 type={item.type}
                 onChange={handleInputChange}
                 {...(item.maxLength && { maxLength: item.maxLength })}
+                {...(item.minLength && { minLength: item.minLength })}
                 {...(item.max && { max: item.max })}
                 {...(item.defaultValue && { defaultValue: item.defaultValue })}
               />
@@ -194,13 +188,14 @@ const FORM_ITEMS = [
     id: 'model',
     label: 'Model',
     placeholder: 'Model',
-    type: 'text',
+    type: 'text'
   },
   {
     id: 'vehicleIdentificationNumber',
     label: 'VIN',
     placeholder: 'VIN',
-    type: 'text'
+    type: 'text',
+    minLength: '15'
   },
   // {
   //   id: 'typeOfFuel',
@@ -246,4 +241,5 @@ const SELECT_BRAND_ITEMS = [
   { key: 7, id: "nissan", value: "Nissan", name: "Nissan" },
   { key: 8, id: "toyota", value: "Toyota", name: "Toyota" },
   { key: 9, id: "volkswagen", value: "Volkswagen", name: "Volkswagen" },
+  { key: 10, id: "tesla", value: "Tesla", name: "Tesla" },
 ];

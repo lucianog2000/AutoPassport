@@ -17,17 +17,19 @@ import {
   Card,
   CardBody,
   CardFooter,
+  Badge,
+  Spinner
 } from '@chakra-ui/react';
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { useRouter } from "next/router";
-import axios from 'axios';
 import getConfig from 'next/config'
 import { handleViewToken } from '@components/services/smart-contract/handleViewToken';
 import { useForm } from "react-hook-form";
-import TokenUpdate from '@components/pages/update-nft-metadata';
+import { handleCheckFines } from '@components/services/smart-contract/handleCheckFines';
 
 export default function TokenViewForm(){
   const  [tokenMetadata, setTokenMetadata] = useState(null);
+  const [spinnerState, setSpinnerState] = useState(false);
   const router = useRouter();
   const env = getConfig().publicRuntimeConfig;
   const contractAddress = env.SMART_CONTRACT_ADDRESS;
@@ -35,26 +37,36 @@ export default function TokenViewForm(){
   const stackBackgroundColor = useColorModeValue('white', 'gray.700')
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
-
+  
   const parseHexToInt = (hexTokenId) => {
     const hexValue = hexTokenId._hex.startsWith('0x') ? hexTokenId._hex.slice(2) : hexTokenId._hex;
     const parseTokenId = parseInt(hexValue, 16);
     return parseTokenId;
   }
 
-  const onSubmit = async (formData) => {
-
-    setTokenMetadata(null);
-
-    // TODO: Manejar error ya que handleViewToken devuelve siempre lo mismo, por mas que el token no exista
-    // TODO: Manejar error de que no se encuentre el token
-    // Revisar que no este harcodeado en el backend
+  const fetchIpfs = async (uri) => {
     try {
+      const ipfs = await fetch(uri);
+      return ipfs.json();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  const onSubmit = async (formData) => {
+    setTokenMetadata(null);
+    try {
+      await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
       const data = await handleViewToken(formData.vin, contractAddress, contractABI);
-      const { uri, tokenId } = data;
+      const { uri, tokenId, objCar } = data;
+      const { hasFines } = objCar;
       const parseTokenId = parseHexToInt(tokenId);
-      const ipfs = await axios.get(uri);
-      setTokenMetadata({tokenURI: uri, metadata: ipfs.data, tokenId: parseTokenId});
+      const ipfs = await fetchIpfs(uri);
+      setSpinnerState(true);
+      setTimeout(() => {
+        setTokenMetadata({tokenURI: uri, metadata: ipfs, tokenId: parseTokenId, hasFines: hasFines});
+      }, 15000);
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -90,7 +102,8 @@ export default function TokenViewForm(){
                   placeholder="VIN"
                   _placeholder={{ color: 'gray.500' }}
                   type="string"
-                  {...register("vin", { required: true })}
+                  minLength={15}
+                  {...register("vin", { required: true})}
                 />
               </FormControl>
               <Stack spacing={6}>
@@ -109,17 +122,42 @@ export default function TokenViewForm(){
           </Stack>
           </form>
           {tokenMetadata && <TokenInfo tokenMetadata={tokenMetadata} />}
+          {
+            (!tokenMetadata && spinnerState) 
+              && <Spinner
+                  thickness='4px'
+                  speed='0.65s'
+                  emptyColor='gray.200'
+                  color='blue.500'
+                  size='xl'
+                />
+          }
         </Flex>
   );
 }
 
-
 const TokenInfo = ({ tokenMetadata }) => {
-  const {tokenId, metadata } = tokenMetadata
+  const {tokenId, metadata, hasFines } = tokenMetadata
   const { name, image, attributes } = metadata;
+  const env = getConfig().publicRuntimeConfig;
+  const contractAddress = env.SMART_CONTRACT_ADDRESS
+  const contractABI = require("../../utils/AutoPassport.json").abi;
 
-  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${'0x3FbE7826e1931373f355C86dd97873E3670633C0'}/${tokenId}`;
-  
+  const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${contractAddress}/${tokenId}`;
+
+  const checkFines = async () => {
+    try {
+      await window.ethereum.request({
+        method: "eth_requestAccounts"
+      });
+      await handleCheckFines(attributes.vin, contractAddress, contractABI);
+      alert('Fines checked, please click again in request autopassport');
+    } catch (error) {
+      const { message } = error;
+      console.log(message);
+    }
+  };
+
   const RenderDataSection = (heading, value) => (
     <Text py="1">
       <Heading 
@@ -189,7 +227,6 @@ const TokenInfo = ({ tokenMetadata }) => {
     );
   };
 
-
   return (
       <Card
         direction={{ base: 'column', sm: 'row' }}
@@ -216,7 +253,9 @@ const TokenInfo = ({ tokenMetadata }) => {
             size='lg'
             color={useColorModeValue('gray.800', 'gray.400')}
             >
-              {name}
+              {name} 
+              {hasFines && <Badge p={2} ml={5} colorScheme="red" size='lg'>🔉 This car has fines</Badge>}
+              {!hasFines && <Badge p={2} ml={5} colorScheme="blue" size='lg'>🔉 This car has not fines</Badge>}
             </Heading>
             {RenderDataSection('Milage', attributes.mileage)}
             {RenderDataSection('Color code', attributes.color_code)}
@@ -231,6 +270,9 @@ const TokenInfo = ({ tokenMetadata }) => {
           <CardFooter>
             <Button as={'a'} variant='solid' colorScheme='blue' href={openSeaLink} target="_blank">
               See in OpenSea
+            </Button>
+            <Button as={'a'} variant='solid' colorScheme='red' mx={2} onClick={() => { checkFines() }}>
+              Check if this car has fines
             </Button>
             <Button as={'a'} variant='solid' colorScheme='pink' mx={2} href={'/update-nft-metadata'}>
               Update NFT

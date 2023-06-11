@@ -2,6 +2,7 @@
   "name": "backend-autopassport",
   "version": "0.1.0",
   "private": true,
+  "description": "",
   "scripts": {
     "api-dev": "node express-server/index.js"
   },
