@@ -20,8 +20,8 @@ contract AutoPassport is
     uint256 private fee;
     string public vinProcessing = "";
     string[] public vinCreated;
-    string[] public gasolineInflation;
-    string[] public carPurchasesInflation;
+    string public gasolineInflation;
+    string public carPurchasesInflation;
     address public oracleId;
     string public jobGasId;
     uint256 private fee2;
@@ -186,8 +186,7 @@ contract AutoPassport is
         bytes32 _requestId,
         bytes memory _inflation
     ) public recordChainlinkFulfillment(_requestId) {
-        string memory newInflation = string(_inflation);
-        gasolineInflation.push(newInflation);
+        gasolineInflation = string(_inflation);
     }
     
     function requestCarPurchasesInflation(
@@ -196,9 +195,9 @@ contract AutoPassport is
         Chainlink.Request memory req = buildChainlinkRequest(
             bytes32(bytes(jobGasId)),
             address(this),
-            this.fulfillGasolineInflation.selector
+            this.fulfillCarPurchasesInflation.selector
         );
-        req.add("service", "truflation/at-date");
+        req.add("service", "truflation/current");
         req.add("data", data_);
         req.add("keypath", "categories.Vehicle purchases (net outlay)");
         req.add("abi", "json");
@@ -210,8 +209,7 @@ contract AutoPassport is
         bytes32 _requestId,
         bytes memory _inflation
     ) public recordChainlinkFulfillment(_requestId) {
-        string memory newInflation = string(_inflation);
-        gasolineInflation.push(newInflation);
+        carPurchasesInflation= string(_inflation);
     }
 
     function _burn(
