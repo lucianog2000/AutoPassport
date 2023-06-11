@@ -72,8 +72,8 @@ contract AutoPassport is
         string memory uriIpfsUrl
     ) public {
         require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
-            "Only Workshop"
+            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Manufacturer,
+            "Only Manufacturer"
         );
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current() + 1;

@@ -5,13 +5,15 @@ contract PassportAccess {
     enum AccessLevel {
         None,
         Workshop,
+        Manufacturer,
         Owner
     }
 
     mapping(address => AccessLevel) public accessLevels;
 
     event WorkshopAdded(address workshop);
-    event WorkshopRemoved(address );
+    event MemberRemoved(address member);
+    event ManufacturerAdded(address manufacturer);
 
     address public owner;
 
@@ -29,15 +31,25 @@ contract PassportAccess {
         require(accessLevels[msg.sender] >= AccessLevel.Workshop, "Only Workshop");
         _;
     }
-
-    function delWorkshop(address _workshop) public onlyOwner {
-        accessLevels[_workshop] = AccessLevel.None;
-        emit WorkshopRemoved(_workshop);
+    modifier onlyManufacturer() {
+        require(accessLevels[msg.sender] >= AccessLevel.Manufacturer, "Only Manufacturer");
+        _;
     }
 
-    function addMember(address _workshop) public onlyOwner {
+    function delPassportAccess(address _member) public onlyOwner {
+        accessLevels[_member] = AccessLevel.None;
+        emit MemberRemoved(_member);
+    }
+
+    function addWorkshop(address _workshop) public onlyOwner {
         accessLevels[_workshop] = AccessLevel.Workshop;
         emit WorkshopAdded(_workshop);
     }
+    
+    function addManufacturer(address _manufacturer) public onlyOwner {
+        accessLevels[_manufacturer] = AccessLevel.Manufacturer;
+        emit ManufacturerAdded(_manufacturer);
+    }
+
 
 }
