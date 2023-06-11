@@ -18,15 +18,18 @@ contract AutoPassport is
 {
     PassportAccess private _passportAccess;
     using Chainlink for Chainlink.Request;
+    // Api call chainlink config
     bytes32 private jobId;
     uint256 private fee;
-    string public vinProcessing = "";
-    string[] public vinCreated;
+    //truflation config
     string public gasolineInflation;
     string public carPurchasesInflation;
-    address public oracleId;
-    string public jobGasId;
-    uint256 private fee2;
+    address public truflationOracleId;
+    string public truflationJobGasId;
+    uint256 private truflationFee;
+
+    string public vinProcessing = "";
+    string[] public vinCreated;
     struct Car {
         string brand;
         string model;
@@ -54,9 +57,19 @@ contract AutoPassport is
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
         fee = (1 * LINK_DIVISIBILITY) / 10; // 0,1 * 10**18 (Varies by network and job)
-        fee2 = 1000000000000000000;
-        jobGasId = "d220e5e687884462909a03021385b7ae";
-        oracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
+        truflationFee = 1000000000000000000;
+        truflationJobGasId = "d220e5e687884462909a03021385b7ae";
+        truflationOracleId = 0x6D141Cf6C43f7eABF94E288f5aa3f23357278499;
+    }
+
+    modifier onlyWorkshop() {
+        require(accessLevels[msg.sender] >= PassportAccess.AccessLevel.Workshop, "Only Workshop");
+        _;
+    }
+
+    modifier onlyManufacturer() {
+        require(accessLevels[msg.sender] >= PassportAccess.AccessLevel.Manufacturer, "Only Manufacturer");
+        _;
     }
 
     function createAutoPassport(
@@ -70,11 +83,7 @@ contract AutoPassport is
         string memory fuel_type,
         string memory last_update,
         string memory uriIpfsUrl
-    ) public {
-        require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Manufacturer,
-            "Only Manufacturer"
-        );
+    ) public onlyManufacturer {
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current() + 1;
         require(
@@ -111,11 +120,7 @@ contract AutoPassport is
         string memory newMaintenance,
         string memory newURI,
         string memory last_update
-    ) public {
-        require(
-            _passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
-            "Only Workshop"
-        );
+    ) public onlyWorkshop {
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         uint256 tokenId = _vinToTokenId[vin];
         Car storage carObject = _cars[tokenId];
@@ -181,7 +186,7 @@ contract AutoPassport is
         string memory data_
     ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
-            bytes32(bytes(jobGasId)),
+            bytes32(bytes(truflationJobGasId)),
             address(this),
             this.fulfillGasolineInflation.selector
         );
@@ -190,7 +195,7 @@ contract AutoPassport is
         req.add("keypath", "categories.Gasoline, other fuels, and motor oil");
         req.add("abi", "json");
         req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
-        return sendChainlinkRequestTo(oracleId, req, fee2);
+        return sendChainlinkRequestTo(truflationOracleId, req, truflationFee);
     }
 
     function fulfillGasolineInflation(
@@ -203,7 +208,7 @@ contract AutoPassport is
     function requestCarPurchasesInflation(
     ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
-            bytes32(bytes(jobGasId)),
+            bytes32(bytes(truflationJobGasId)),
             address(this),
             this.fulfillCarPurchasesInflation.selector
         );
@@ -212,7 +217,7 @@ contract AutoPassport is
         req.add("keypath", "categories.Vehicle purchases (net outlay)");
         req.add("abi", "json");
         req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
-        return sendChainlinkRequestTo(oracleId, req, fee2);
+        return sendChainlinkRequestTo(truflationOracleId, req, truflationFee);
     }
 
     function fulfillCarPurchasesInflation(

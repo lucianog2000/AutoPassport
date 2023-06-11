@@ -27,15 +27,6 @@ contract PassportAccess {
         _;
     }
 
-    modifier onlyWorkshop() {
-        require(accessLevels[msg.sender] >= AccessLevel.Workshop, "Only Workshop");
-        _;
-    }
-    modifier onlyManufacturer() {
-        require(accessLevels[msg.sender] >= AccessLevel.Manufacturer, "Only Manufacturer");
-        _;
-    }
-
     function delPassportAccess(address _member) public onlyOwner {
         accessLevels[_member] = AccessLevel.None;
         emit MemberRemoved(_member);
