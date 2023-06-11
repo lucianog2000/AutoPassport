@@ -16,7 +16,7 @@ contract AutoPassport is
     ERC721Burnable,
     ERC721URIStorage
 {
-    PassportAccess private _passportAccess;
+    PassportAccess private passportAccess;
     using Chainlink for Chainlink.Request;
     // Api call chainlink config
     bytes32 private jobId;
@@ -51,8 +51,8 @@ contract AutoPassport is
     mapping(string => bool) private _isVinUsed;
     mapping(uint256 => bool) private _isTokenIdUsed;
 
-    constructor(address passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
-         _passportAccess = PassportAccess(passportAccessAddress);
+    constructor(address _passportAccessAddress) ERC721("Autopassport", "Pass") ConfirmedOwner(msg.sender) {
+        passportAccess = PassportAccess(_passportAccessAddress);
         setChainlinkToken(0x326C977E6efc84E512bB9C30f76E30c160eD06FB);
         setChainlinkOracle(0x40193c8518BB267228Fc409a613bDbD8eC5a97b3);
         jobId = "7d80a6386ef543a3abb52817f6707e3b";
@@ -63,15 +63,14 @@ contract AutoPassport is
     }
 
     modifier onlyWorkshop() {
-        require(accessLevels[msg.sender] >= PassportAccess.AccessLevel.Workshop, "Only Workshop");
+        require(passportAccess.accessLevels(msg.sender) == PassportAccess.AccessLevel.Workshop, "Only authorized Workshop");
         _;
     }
 
     modifier onlyManufacturer() {
-        require(accessLevels[msg.sender] >= PassportAccess.AccessLevel.Manufacturer, "Only Manufacturer");
+        require(passportAccess.accessLevels(msg.sender) == PassportAccess.AccessLevel.Manufacturer, "Only authorized Manufacturer");
         _;
     }
-
     function createAutoPassport(
         address to,
         string memory brand,
@@ -83,7 +82,11 @@ contract AutoPassport is
         string memory fuel_type,
         string memory last_update,
         string memory uriIpfsUrl
-    ) public onlyManufacturer {
+    ) public onlyManufacturer{
+        require(
+            passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Manufacturer,
+            "Only authorized Manufacturer"
+        );
         require(_isVinUsed[vin] == false, "Car with this VIN already exists");
         uint256 tokenId = _tokenIdCounter.current() + 1;
         require(
@@ -120,7 +123,11 @@ contract AutoPassport is
         string memory newMaintenance,
         string memory newURI,
         string memory last_update
-    ) public onlyWorkshop {
+    ) public onlyWorkshop{
+        require(
+            passportAccess.accessLevels(msg.sender) >= PassportAccess.AccessLevel.Workshop,
+            "Only authorized Workshop"
+        );
         require(_isVinUsed[vin] == true, "Car with this VIN does not exist");
         uint256 tokenId = _vinToTokenId[vin];
         Car storage carObject = _cars[tokenId];
