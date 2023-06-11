@@ -4,7 +4,7 @@ pragma solidity 0.8.17;
 contract PassportAccess {
     enum AccessLevel {
         None,
-        Whitelist,
+        Workshops,
         Owner
     }
 
@@ -26,8 +26,8 @@ contract PassportAccess {
         _;
     }
 
-    modifier onlyWhitelist() {
-        require(accessLevels[msg.sender] >= AccessLevel.Whitelist, "Only whitelist");
+    modifier onlyWorkshops() {
+        require(accessLevels[msg.sender] >= AccessLevel.Workshop, "Only Workshops");
         _;
     }
 
@@ -38,12 +38,12 @@ contract PassportAccess {
         return info[index];
     }
 
-    function addInfo(string memory _info) public onlyWhitelist {
+    function addInfo(string memory _info) public onlyWorkshops {
         info.push(_info);
         emit InfoChange("", _info);
     }
 
-    function setInfo(uint256 index, string memory _info) public onlyWhitelist {
+    function setInfo(uint256 index, string memory _info) public onlyWorkshops{
         require(index < info.length, "Invalid index");
         emit InfoChange(info[index], _info);
         info[index] = _info;
@@ -53,18 +53,14 @@ contract PassportAccess {
         return info;
     }
 
-    function delMember(address _member) public onlyOwner {
-        accessLevels[_member] = AccessLevel.None;
-        emit MemberRemoved(_member);
+    function delWorkshop(address _workshop) public onlyOwner {
+        accessLevels[_workshop] = AccessLevel.None;
+        emit WorkshopRemoved(_workshop);
     }
 
-    function addMember(address _member) public onlyOwner {
-        accessLevels[_member] = AccessLevel.Whitelist;
-        emit MemberAdded(_member);
+    function addMember(address _workshop) public onlyOwner {
+        accessLevels[_workshop] = AccessLevel.Workshop;
+        emit WorkshopAdded(_workshop);
     }
 
-    function removeMember(address _member) public onlyOwner {
-        accessLevels[_member] = AccessLevel.None;
-        emit MemberRemoved(_member);
-    }
 }

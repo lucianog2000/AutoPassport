@@ -211,7 +211,7 @@ contract AutoPassport is
             this.fulfillCarPurchasesInflation.selector
         );
         req.add("service", "truflation/current");
-        req.add("data", data_);
+        req.add("data", '{"date":"2021-10-05","location":"us","categories":"true"}');
         req.add("keypath", "categories.Vehicle purchases (net outlay)");
         req.add("abi", "json");
         req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
