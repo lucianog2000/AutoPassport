@@ -41,6 +41,7 @@ import { handleRequestInflation } from '@components/services/smart-contract/hand
 import { handleRefreshInflation } from '@components/services/smart-contract/handleRefreshInflation';
 
 export default function TokenViewForm(){
+  const [alert, setAlert ] = useState({show: false, message: '', status: '' });
   const  [tokenMetadata, setTokenMetadata] = useState(null);
   const [spinnerState, setSpinnerState] = useState(false);
   const router = useRouter();
@@ -83,8 +84,13 @@ export default function TokenViewForm(){
     } catch (error) {
       const { message } = error;
       console.log(message);
-    }
-  };
+      setSpinnerState(false);
+      setAlert({show: true, status: 'error', message: 'Something went wrong. Check if the VIN is correct'});
+      setTimeout(() => {
+        setAlert({show: false, message: '', status: ''});
+        }, 2500);
+      }
+    };
 
   return (
         <Flex
@@ -102,6 +108,12 @@ export default function TokenViewForm(){
             boxShadow={'lg'}
             p={6}
             my={12}>
+              {alert.show && (
+                <Alert status={alert.status}>
+                  <AlertIcon />
+                  {alert.message}
+                </Alert>
+              )}
               <Heading lineHeight={1.1} fontSize={{ base: '2xl', md: '3xl' }}>
                 Enter a VIN
               </Heading>
