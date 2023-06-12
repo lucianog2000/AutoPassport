@@ -62,7 +62,7 @@ export default function HeroSection() {
             </Button>
             <Button variant={'link'} colorScheme={'gray'} size={'m'} onClick={() => router.push('/view-nft-metadata')}>
               View Token
-            </Button>
+            </Button >
             {/* <YouTubeVideo title='How It Works' /> */}
           </Stack>
         </Stack>

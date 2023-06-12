@@ -7,6 +7,5 @@ export async function handleCreationToken(formValues, contractAddress, contractA
     contract,
     formValues
   );
-  console.log(`The token has been created successfully ${transactionHash}`);
-  alert(`The token has been created successfully ${transactionHash}`);
+  return transactionHash;
 }

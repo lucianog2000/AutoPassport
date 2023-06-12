@@ -18,14 +18,27 @@ import {
   CardBody,
   CardFooter,
   Badge,
-  Spinner
+  Spinner,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  StatGroup,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription
 } from '@chakra-ui/react';
+import { RepeatIcon } from '@chakra-ui/icons';
 import { useState, useEffect  } from "react";
 import { useRouter } from "next/router";
 import getConfig from 'next/config'
 import { handleViewToken } from '@components/services/smart-contract/handleViewToken';
 import { useForm } from "react-hook-form";
 import { handleCheckFines } from '@components/services/smart-contract/handleCheckFines';
+import { handleRequestInflation } from '@components/services/smart-contract/handleRequestInflation';
+import { handleRefreshInflation } from '@components/services/smart-contract/handleRefreshInflation';
 
 export default function TokenViewForm(){
   const  [tokenMetadata, setTokenMetadata] = useState(null);
@@ -142,6 +155,7 @@ const TokenInfo = ({ tokenMetadata }) => {
   const env = getConfig().publicRuntimeConfig;
   const contractAddress = env.SMART_CONTRACT_ADDRESS
   const contractABI = require("../../utils/AutoPassport.json").abi;
+  const [CPI, setCPI] = useState("");
 
   const openSeaLink = `https://testnets.opensea.io/es/assets/mumbai/${contractAddress}/${tokenId}`;
 
@@ -227,6 +241,25 @@ const TokenInfo = ({ tokenMetadata }) => {
     );
   };
 
+  async function requestTruflationData() {
+    try {
+      await handleRequestInflation(contractAddress, contractABI);
+      
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async function refreshTruflationData() {
+    try {
+      const data = await handleRefreshInflation(contractAddress, contractABI);
+      const jsonData = JSON.parse(data)
+      const roundedNumber = Number(jsonData.yearOverYearInflation.toFixed(2));
+      setCPI(roundedNumber);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
       <Card
         direction={{ base: 'column', sm: 'row' }}
@@ -266,7 +299,6 @@ const TokenInfo = ({ tokenMetadata }) => {
             {renderHistory('Maintenance history', attributes.maintenance_history)}
             {RenderDataSection('Last update', attributes.last_update)}
           </CardBody>
-
           <CardFooter>
             <Button as={'a'} variant='solid' colorScheme='blue' href={openSeaLink} target="_blank">
               See in OpenSea
@@ -277,6 +309,40 @@ const TokenInfo = ({ tokenMetadata }) => {
             <Button as={'a'} variant='solid' colorScheme='pink' mx={2} href={'/update-nft-metadata'}>
               Update NFT
             </Button>
+          </CardFooter>
+          <CardFooter display={'flex'} justifyContent={'center'} flexDirection={'column'}>
+            <Stack spacing={3} marginBottom={5}>
+              <Alert status='info' borderRadius={'md'}>
+                <AlertIcon />
+                <p>
+                  This is our Devaluation Calculator and we are working on it to<br/>
+                  give the possibility to calculate the devaluation of US cars using<br/>       
+                  multiple parameters, For example: USA CPI Data, market value, etc.<br/>
+                  Comming soon...<br/>  
+                </p>
+              </Alert>
+            </Stack>
+            <Button marginBottom={5} width={220} onClick={()=> {alert('Comming soon')}}>
+              Open Devaluation calculator
+            </Button>
+            <StatGroup>
+              <Button marginRight={20} onClick={async()=> {requestTruflationData()}}>Request updated data</Button>
+              <Stat>
+                <StatLabel>USA CPI Data powered by Truflation</StatLabel>
+                <StatNumber>{CPI}%</StatNumber>
+                {/* <StatHelpText>
+                  <StatArrow type='increase' />
+                  23.36%
+                </StatHelpText>
+                <StatHelpText>
+                  <StatArrow type='decrease' />
+                  23.36%
+                </StatHelpText> */}
+              </Stat>
+              <Button width={5} onClick={()=> {refreshTruflationData()}}>
+                <RepeatIcon/>
+              </Button>
+            </StatGroup>
           </CardFooter>
         </Stack>
       </Card>
