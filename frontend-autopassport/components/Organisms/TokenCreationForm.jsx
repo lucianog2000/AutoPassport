@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import {
+  Alert,
+  AlertIcon,
   Button,
   Flex,
   FormControl,
@@ -19,6 +21,7 @@ import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
 import { handleCreationToken } from '../../services/smart-contract/handleCreationToken';
 
 export default function TokenCreationForm() {
+  const [alert, setAlert ] = useState({show: false, message: '', status: '' });
   const router = useRouter();
   const [formValues, setFormValues] = useState({});
   const env = getConfig().publicRuntimeConfig;
@@ -27,6 +30,7 @@ export default function TokenCreationForm() {
   const contractABI = require("../../utils/AutoPassport.json").abi;
   let imageCID;
   let metadataCID;
+
   const handleInputChange = (event) => {
     const { id, value } = event.target;
     setFormValues((prevValues) => ({
@@ -42,7 +46,6 @@ export default function TokenCreationForm() {
   };
 
   const handleSubmit = async (event) => {
-
     event.preventDefault();
     try {
       const accounts = await window.ethereum.request({
@@ -77,10 +80,16 @@ export default function TokenCreationForm() {
       if (metadataCID) {
         formValues['uriIpfsUrl'] = 'https://gateway.pinata.cloud/ipfs/'+ metadataCID;
       }
-      await handleCreationToken(formValues, contractAddress, contractABI);
-      setTimeout(() => {
+      const transactionHash = await handleCreationToken(formValues, contractAddress, contractABI);
+      console.log('trans', transactionHash)
+      if (transactionHash) {
+        setAlert({show: true, status: 'success', message: 'The token has been created successfully'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 2500);
         router.push('/');
-      }, 2500);
+      }
     } catch (error) {
       const { message } = error;
       console.log(message);
@@ -90,13 +99,25 @@ export default function TokenCreationForm() {
       if (metadataCID) {
         unpinningFileToIPFS(metadataCID, PINATA_JWT);
       }
-      alert(`Error to create AutoPassport: ${message}. Try later or contact with support`);
-      //redireccionamos a la home para evitar problemas en el form
-      router.push('/');
+      if (message.includes("execution reverted: Only Manufacturer")) {
+        setAlert({show: true, message: "You don't have permission to create a token", status: 'error'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 500);
+      }
+      else {
+        setAlert({show: true, message: 'Something went wrong', status: 'error'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 500);
+      }
     }
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit}>
       <Flex minH={'100vh'} align={'center'} justify={'center'}>
         <Stack
@@ -109,6 +130,12 @@ export default function TokenCreationForm() {
           p={6}
           my={12}
         >
+          {alert.show && (
+          <Alert status={alert.status}>
+            <AlertIcon />
+            {alert.message}
+          </Alert>
+          )}
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Create AutoPassport
           </Heading>
@@ -172,6 +199,7 @@ export default function TokenCreationForm() {
         </Stack>
       </Flex>
     </form>
+    </>
   );
 }
 

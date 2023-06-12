@@ -1,5 +1,7 @@
-import React,{useEffect, useState, useRef } from 'react';
+import React,{ useState, useRef } from 'react';
 import {
+    Alert,
+    AlertIcon,
     Button,
     Flex,
     FormControl,
@@ -11,21 +13,20 @@ import {
 } from '@chakra-ui/react';
 import getConfig from 'next/config'
 import { useRouter } from 'next/router';
-import { set, useForm } from 'react-hook-form';  
+import { useForm } from 'react-hook-form';  
 import { handleViewToken } from '../../services/smart-contract/handleViewToken';
-import axios from 'axios';
 import { pinningMetadataToIPFS } from '@components/services/IPFS/pinningMetadataToIPFS';
 import { unpinningFileToIPFS } from '../../services/IPFS/unpinningFileToIPFS';
 import { handleUpdateToken } from '@components/services/smart-contract/handleUpdateToken';
 
 export default function TokenUpdateForm(){
+  const [alert, setAlert ] = useState({show: false, message: '', status: ''});
   const router = useRouter();
   const env = getConfig().publicRuntimeConfig;
   const contractAddress = env.SMART_CONTRACT_ADDRESS;
   const PINATA_JWT = env.PINATA_JWT;
   const contractABI = require("../../utils/AutoPassport.json").abi;
   const { handleSubmit, register, errors } = useForm();
-
 
   const onSubmit = async (formData) => {
     let newRepair;
@@ -75,10 +76,29 @@ export default function TokenUpdateForm(){
       if (oldMetadataCID) {
         unpinningFileToIPFS(oldMetadataCID, PINATA_JWT);
       }
-      alert(`The token has been updated successfully ${transactionHash}`);
+      if (transactionHash) {
+        setAlert({show: true, message: 'The token has been updated successfully', status: 'success'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 5000);
+      }
     } catch (error) {
       const { message } = error;
-      console.log(message);
+      if (message.includes("execution reverted: Only Workshop")) {
+        setAlert({show: true, message: "You don't have permission to update a token", status: 'error'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 5000);
+      }
+      else {
+        setAlert({show: true, message: 'Something went wrong', status: 'error'});
+        setTimeout(() => {
+          setAlert({show: false, message: '', status: ''});
+        }
+        , 5000);
+      }
     }
 
     function setMaintenanceData(newMetadata) {
@@ -112,10 +132,16 @@ export default function TokenUpdateForm(){
           boxShadow={'lg'}
           p={6}
           my={12}>
+          {alert.show && (
+          <Alert status={alert.status}>
+            <AlertIcon />
+            {alert.message}
+          </Alert>
+         )}
           <Heading lineHeight={1.1} fontSize={{ base: '2xl', sm: '3xl' }}>
             Update AutoPassport
           </Heading>
-  
+          
           {FORM_ITEMS.map((item, length) => (
               <FormControl key={length} id={item.id} isRequired={item.isRequired}>
               <FormLabel>{item.label}</FormLabel>

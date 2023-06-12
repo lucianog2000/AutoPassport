@@ -22,8 +22,7 @@ contract AutoPassport is
     bytes32 private jobId;
     uint256 private fee;
     //truflation config
-    string public gasolineInflation;
-    string public carPurchasesInflation;
+    string public truflationInflation;
     address public truflationOracleId;
     string public truflationJobGasId;
     uint256 private truflationFee;
@@ -188,50 +187,26 @@ contract AutoPassport is
             }
         }
     }
-
-    function requestGasolineInflation(
-        string memory data_
-    ) public returns (bytes32 requestId) {
-        Chainlink.Request memory req = buildChainlinkRequest(
-            bytes32(bytes(truflationJobGasId)),
-            address(this),
-            this.fulfillGasolineInflation.selector
-        );
-        req.add("service", "truflation/at-date");
-        req.add("data", data_);
-        req.add("keypath", "categories.Gasoline, other fuels, and motor oil");
-        req.add("abi", "json");
-        req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
-        return sendChainlinkRequestTo(truflationOracleId, req, truflationFee);
-    }
-
-    function fulfillGasolineInflation(
-        bytes32 _requestId,
-        bytes memory _inflation
-    ) public recordChainlinkFulfillment(_requestId) {
-        gasolineInflation = string(_inflation);
-    }
     
-    function requestCarPurchasesInflation(
+    function requestTruflationInflation(
     ) public returns (bytes32 requestId) {
         Chainlink.Request memory req = buildChainlinkRequest(
             bytes32(bytes(truflationJobGasId)),
             address(this),
-            this.fulfillCarPurchasesInflation.selector
+            this.fulfillTruflationInflation.selector
         );
         req.add("service", "truflation/current");
-        req.add("data", '{"date":"2021-10-05","location":"us","categories":"true"}');
-        req.add("keypath", "categories.Vehicle purchases (net outlay)");
+        req.add("data", '{"location":"us"}');
         req.add("abi", "json");
         req.add("refundTo", Strings.toHexString(uint160(msg.sender), 20));
         return sendChainlinkRequestTo(truflationOracleId, req, truflationFee);
     }
 
-    function fulfillCarPurchasesInflation(
+    function fulfillTruflationInflation(
         bytes32 _requestId,
-        bytes memory _inflation
+        string memory _inflation
     ) public recordChainlinkFulfillment(_requestId) {
-        carPurchasesInflation= string(_inflation);
+        truflationInflation = string(_inflation);
     }
 
     function _burn(
