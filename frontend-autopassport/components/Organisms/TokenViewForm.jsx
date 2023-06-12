@@ -260,6 +260,12 @@ const TokenInfo = ({ tokenMetadata }) => {
     }
   }
 
+  useEffect(() => {
+    refreshTruflationData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  
+
   return (
       <Card
         direction={{ base: 'column', sm: 'row' }}
@@ -339,7 +345,7 @@ const TokenInfo = ({ tokenMetadata }) => {
                   23.36%
                 </StatHelpText> */}
               </Stat>
-              <Button width={5} onClick={()=> {refreshTruflationData()}}>
+              <Button width={5} marginLeft={5} onClick={()=> {refreshTruflationData()}}>
                 <RepeatIcon/>
               </Button>
             </StatGroup>
