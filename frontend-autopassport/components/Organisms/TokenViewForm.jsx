@@ -18,7 +18,17 @@ import {
   CardBody,
   CardFooter,
   Badge,
-  Spinner
+  Spinner,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  StatGroup,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription
 } from '@chakra-ui/react';
 import { useState, useEffect  } from "react";
 import { useRouter } from "next/router";
@@ -266,7 +276,6 @@ const TokenInfo = ({ tokenMetadata }) => {
             {renderHistory('Maintenance history', attributes.maintenance_history)}
             {RenderDataSection('Last update', attributes.last_update)}
           </CardBody>
-
           <CardFooter>
             <Button as={'a'} variant='solid' colorScheme='blue' href={openSeaLink} target="_blank">
               See in OpenSea
@@ -277,6 +286,36 @@ const TokenInfo = ({ tokenMetadata }) => {
             <Button as={'a'} variant='solid' colorScheme='pink' mx={2} href={'/update-nft-metadata'}>
               Update NFT
             </Button>
+          </CardFooter>
+          <CardFooter display={'flex'} justifyContent={'center'} flexDirection={'column'}>
+            <Stack spacing={3} marginBottom={5}>
+              <Alert status='info' borderRadius={'md'}>
+                <AlertIcon />
+                <p>
+                  This is our Devaluation Calculator and we are working on it to<br/>
+                  give the possibility to calculate the devaluation of US cars using<br/>       
+                  multiple parameters, For example: USA CPI Data, market value, etc.<br/>
+                  Available soon...<br/>  
+                </p>
+              </Alert>
+            </Stack>
+            <Button marginBottom={5} width={200}>
+              Devaluation calculator
+            </Button>
+            <StatGroup>
+              <Stat>
+                <StatLabel>USA CPI Data powered by Truflation</StatLabel>
+                <StatNumber>345,670</StatNumber>
+                <StatHelpText>
+                  <StatArrow type='increase' />
+                  23.36%
+                </StatHelpText>
+                <StatHelpText>
+                  <StatArrow type='decrease' />
+                  23.36%
+                </StatHelpText>
+              </Stat>
+            </StatGroup>
           </CardFooter>
         </Stack>
       </Card>

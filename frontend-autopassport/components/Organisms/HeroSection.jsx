@@ -64,9 +64,6 @@ export default function HeroSection() {
               View Token
             </Button >
             {/* <YouTubeVideo title='How It Works' /> */}
-            <Button variant={'link'} colorScheme={'gray'} size={'m'} onClick={() => router.push('/view-ecosystem-graphs')}>
-              View Ecosystem Graphs
-            </Button >
           </Stack>
         </Stack>
       </Container>
