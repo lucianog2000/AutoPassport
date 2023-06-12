@@ -87,7 +87,7 @@ export default function TokenCreationForm() {
         setTimeout(() => {
           setAlert({show: false, message: '', status: ''});
         }
-        , 2500);
+        , 6000);
         router.push('/');
       }
     } catch (error) {
