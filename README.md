@@ -12,13 +12,20 @@ The frontend-autopassport folder contains the interactive user interface for Aut
 
 To set up and run the frontend-autopassport component, follow these steps:
 
--Clone the repository to your local machine.
--Navigate to the frontend-autopassport folder.
--Install project dependencies by running the command: npm install.
--Configure the necessary information to connect to your desired blockchain network.
--Start the application with the command: npm run dev.
--Access the application in your browser at http://localhost:3000.
-backend-autopassport
+- Clone the repository to your local machine.
+- Navigate to the frontend-autopassport folder.
+- Install project dependencies by running the command: npm install.
+- Configure the necessary information to connect to your desired blockchain network.
+- Start the application with the command: npm run dev.
+- Access the application in your browser at http://localhost:3000.
+- In order to interact with the contract functions, it is necessary to use an authorized wallet through our whitelist. Below, we provide you with the seed phrase corresponding to our test wallet.
+![Alt text](image.png)
+- Make sure you are on the Mumbai network.
+![Alt text](image-1.png)
+- The first account (Accounts[0]) has permissions to update tokens, and the second account (Accounts[1]) has permissions to create tokens.
+![Alt text](image-2.png)
+
+## backend-autopassport
 
 The backend-autopassport folder contains the server-side component of AutoPassport. It includes the development of smart contracts using Node.js and Hardhat, as well as an Express API for future implementations.
 
@@ -56,6 +63,12 @@ Sigue los pasos a continuación para configurar y ejecutar el frontend de AutoPa
 - Ejecuta la aplicación con el siguiente comando:
 - npm run dev
 - Accede a la aplicación en tu navegador en la dirección http://localhost:3000.
+- Para poder interactuar con las funciones del contrato es necesario utilizar una wallet autorizada mediante nuestra whitelist, a continuación les brindamos una frase semilla correspondiente a nuestra wallet de pruebas.
+![Alt text](image.png)
+- Asegurarse de estar en la red mumbai
+![Alt text](image-1.png)
+- La primer cuenta (Accounts[0]) posee permisos para actualizar tokens, la segunda cuenta (Account[1]) posee permisos para crear tokens.
+![Alt text](image-2.png)
 
 ## backend-autopassport
 
